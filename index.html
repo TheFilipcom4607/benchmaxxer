@@ -56,7 +56,8 @@
   }
   #stage{
     flex:1;min-width:0;overflow:auto;padding:32px 32px 56px;
-    display:flex;align-items:flex-start;justify-content:center;background:var(--bg);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    background:var(--bg);
   }
   #cardWrap{width:100%;max-width:1120px;cursor:zoom-in;border-radius:3px}
   #cardWrap svg{
@@ -65,14 +66,27 @@
   }
   /* ── sections ──────────────────────────────────────────── */
   .sec{border-bottom:1px solid var(--line2)}
-  .sec>h3{
-    margin:0;padding:13px 16px;cursor:pointer;user-select:none;
-    display:flex;align-items:center;gap:9px;
+  .sec>h3{margin:0;font:inherit}
+  .sec>h3>button{
+    width:100%;margin:0;padding:13px 16px;cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:9px;text-align:left;
+    background:transparent;border:0;border-radius:0;
     font:600 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);
   }
-  .sec>h3:hover{color:var(--ink)}
-  .sec>h3 svg{width:9px;height:9px;flex:0 0 auto;transition:transform .16s ease;color:var(--ink4)}
-  .sec.collapsed>h3 svg{transform:rotate(-90deg)}
+  .sec>h3>button:hover{color:var(--ink);background:var(--panel2)}
+  .sec>h3>button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+  .sec>h3 .step{
+    flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:var(--panel3);
+    color:var(--ink3);display:flex;align-items:center;justify-content:center;
+    font:650 9.5px/1 var(--sans);letter-spacing:0;
+  }
+  .sec>h3 .ttl{flex:1;min-width:0}
+  .sec>h3 .count{
+    flex:0 0 auto;font:650 10px/1 var(--mono);letter-spacing:0;color:var(--ink3);
+    background:var(--panel3);border-radius:99px;padding:4px 7px;font-style:normal;
+  }
+  .sec>h3 .chev{width:9px;height:9px;flex:0 0 auto;transition:transform .16s ease;color:var(--ink4)}
+  .sec.collapsed>h3 .chev{transform:rotate(-90deg)}
   .sec.collapsed>.body{display:none}
   .sec>.body{padding:0 16px 18px}
   /* ── fields ────────────────────────────────────────────── */
@@ -241,6 +255,88 @@
   #tapHint:hover{background:var(--panel);color:var(--ink)}
   #tapHint:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 
+  /* ── first-run guide ───────────────────────────────────── */
+  #guide{
+    position:relative;margin:0;padding:13px 40px 14px 16px;
+    border-bottom:1px solid var(--line2);background:var(--panel2);
+  }
+  #guide[hidden]{display:none}
+  #guide b{display:block;font:650 11px/1 var(--sans);letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink2);margin-bottom:9px}
+  #guide ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+  #guide li{display:flex;gap:8px;align-items:baseline;font-size:12px;color:var(--ink2);line-height:1.45}
+  #guide li i{
+    flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:var(--panel);
+    border:1px solid var(--line);color:var(--ink3);font:650 9.5px/15px var(--sans);
+    font-style:normal;text-align:center;
+  }
+  #guideHide{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;min-height:0;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;border:0;color:var(--ink3);border-radius:6px;
+  }
+  #guideHide:hover{background:var(--panel3);color:var(--ink)}
+  /* ── toasts ────────────────────────────────────────────── */
+  #toasts{
+    position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:70;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    pointer-events:none;width:max-content;max-width:calc(100vw - 24px);
+  }
+  .toast{
+    pointer-events:auto;display:flex;align-items:center;gap:10px;
+    background:#232321;color:#F4F3F1;border-radius:10px;padding:9px 10px 9px 14px;
+    box-shadow:0 6px 24px -6px rgba(0,0,0,.45);font-size:12.5px;
+    animation:toastIn .16s ease-out;max-width:100%;
+  }
+  .toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .toast button{
+    flex:0 0 auto;background:rgba(255,255,255,.13);border:0;color:#fff;
+    padding:5px 10px;border-radius:7px;font:650 11.5px/1 var(--sans);min-height:0;
+  }
+  .toast button:hover{background:rgba(255,255,255,.24)}
+  .toast button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .toast{animation:none}
+    .sec>h3 .chev,.sw i,.sw i::after{transition:none}
+  }
+  /* ── search field extras ───────────────────────────────── */
+  .search .clr{
+    position:absolute;right:4px;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;min-height:0;padding:0;border:0;background:transparent;
+    color:var(--ink3);border-radius:6px;display:none;align-items:center;justify-content:center;
+  }
+  .search .clr svg{position:static;width:9px;height:9px;color:inherit}
+  .search.has .clr{display:flex}
+  .search .clr:hover{background:var(--panel3);color:var(--ink)}
+  .mrow.added{background:var(--panel3)}
+  .mrow .tick{flex:0 0 auto;width:12px;height:12px;color:var(--ink3);opacity:0}
+  .mrow.added .tick{opacity:1;color:var(--ink)}
+  .mrow.added .nm{color:var(--ink2)}
+  /* ── "model list not loading?" disclosure ──────────────── */
+  #pasteBox{margin-top:10px}
+  #pasteBox summary{
+    cursor:pointer;list-style:none;padding:6px 0;
+    font-size:11.5px;color:var(--ink3);text-decoration:underline;text-underline-offset:3px;
+  }
+  #pasteBox summary::-webkit-details-marker{display:none}
+  #pasteBox summary:hover{color:var(--ink2)}
+  /* ── shortcuts ─────────────────────────────────────────── */
+  #keys{padding:14px 16px 26px;color:var(--ink3)}
+  #keys summary{
+    cursor:pointer;font:600 10px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink3);list-style:none;padding:4px 0;
+  }
+  #keys summary::-webkit-details-marker{display:none}
+  #keys summary:hover{color:var(--ink2)}
+  #keys dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:11px 0 0;font-size:11.5px}
+  #keys dt{margin:0}
+  #keys dd{margin:0;color:var(--ink3)}
+  kbd{
+    font:500 10.5px/1 var(--mono);background:var(--panel3);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:3px 5px;color:var(--ink2);white-space:nowrap;
+  }
+
   /* ── phones and small tablets ──────────────────────────── */
   @media (max-width:900px){
     header.bar{height:50px;padding:0 11px;gap:7px}
@@ -275,8 +371,11 @@
     .sw i::after{width:19px;height:19px}
     .sw input:checked + i::after{transform:translateX(15px)}
     .f>span,.tiny{font-size:10.5px;margin-bottom:7px}
-    .sec>h3{padding:16px}
+    .sec>h3>button{padding:16px}
     .sec>.body{padding:0 16px 20px}
+    #toasts{bottom:12px;width:calc(100vw - 20px)}
+    .toast{width:100%;font-size:13px}
+    #guideHide{width:34px;height:34px}
     .swatch{width:46px;height:42px}
     .chip{width:30px;height:30px}
     .chips{gap:9px}
@@ -312,43 +411,117 @@
 <header class="bar">
   <div class="brand"><b>Benchmaxxer</b><i>fake benchmark figure studio</i></div>
   <div class="spacer"></div>
-  <button id="btnPreset" title="Load a random preset"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
-  <button id="btnSvg" aria-label="Download SVG">SVG</button>
-  <button class="p" id="btnPng" aria-label="Download PNG"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
+  <button id="btnUndo" class="ico" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+    <svg viewBox="0 0 12 12" fill="none"><path d="M3.4 3.1L1.3 5.2l2.1 2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.6 5.2h5.2a3.2 3.2 0 1 1 0 6.4H4.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
+  <button id="btnPreset" title="Load a random preset (R)"><span class="lbl-l">Surprise me</span><span class="lbl-s">Random</span></button>
+  <button id="btnSvg" title="Download SVG" aria-label="Download SVG">SVG</button>
+  <button class="p" id="btnPng" title="Download PNG (Ctrl+S)" aria-label="Download PNG"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
 </header>
 
 <main>
   <aside id="side">
 
+    <div id="guide">
+      <b>How this works</b>
+      <ol>
+        <li><i>1</i><span>Start from a preset — each one is a finished figure.</span></li>
+        <li><i>2</i><span>Swap in the models you want, and star the one that is yours.</span></li>
+        <li><i>3</i><span>Type any numbers you like, then download the PNG.</span></li>
+      </ol>
+      <button id="guideHide" type="button" title="Hide this" aria-label="Hide the how-it-works panel">
+        <svg viewBox="0 0 11 11" fill="none" width="11" height="11"><path d="M2.4 2.4l6.2 6.2M8.6 2.4L2.4 8.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
     <section class="sec" id="secPresets">
-      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Presets</h3>
-      <div class="body">
+      <h3><button type="button" class="sech" aria-expanded="true" aria-controls="bodyPresets">
+        <svg class="chev" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="step">1</span><span class="ttl">Start from a preset</span></button></h3>
+      <div class="body" id="bodyPresets">
         <div id="presets"></div>
         <p class="hint">Each one is a finished figure. Change anything afterwards.</p>
+        <div class="row" style="margin-top:9px">
+          <button class="sm g" id="btnShuffle">Surprise me</button>
+          <button class="sm g" id="btnReset">Start over</button>
+        </div>
       </div>
     </section>
 
-    <section class="sec" id="secId">
-      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Benchmark identity</h3>
-      <div class="body">
-        <label class="f"><span>Eyebrow</span><input type="text" id="fEyebrow"></label>
-        <label class="f"><span>Benchmark name</span><input type="text" id="fTitle"></label>
-        <label class="f"><span>Subtitle</span><input type="text" id="fSubtitle"></label>
-        <div class="grid2">
-          <label class="f"><span>Org wordmark</span><input type="text" id="fOrg"></label>
-          <label class="f"><span>Date / version</span><input type="text" id="fDate"></label>
+    <section class="sec" id="secModels">
+      <h3><button type="button" class="sech" aria-expanded="true" aria-controls="bodyModels">
+        <svg class="chev" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="step">2</span><span class="ttl">Pick who is on the chart</span><em class="count" id="cntModels"></em></button></h3>
+      <div class="body" id="bodyModels">
+        <span class="tiny">Compare</span>
+        <div class="seg" id="segSubject" role="group" aria-label="Contender type">
+          <button data-v="models" class="on">Models</button>
+          <button data-v="labs">Whole labs</button>
         </div>
-        <label class="f"><span>Footnote</span><textarea id="fFootnote" rows="3"></textarea></label>
+        <div style="height:13px"></div>
         <div class="row">
-          <button class="sm g" id="btnName">Random name</button>
-          <button class="sm g" id="btnFoot">Random small print</button>
+          <div class="search" id="searchBox">
+            <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/><path d="M9.2 9.2L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="fSearch" placeholder="Search models  ( / )" autocomplete="off" spellcheck="false">
+            <button class="clr" id="btnClearSearch" type="button" title="Clear search" aria-label="Clear search">
+              <svg viewBox="0 0 11 11" fill="none"><path d="M2.4 2.4l6.2 6.2M8.6 2.4L2.4 8.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <button class="ico" id="btnFetch" title="Reload from OpenRouter" aria-label="Reload the model list from OpenRouter">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M10.5 6a4.5 4.5 0 1 1-1.6-3.45" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10.8 1v2.4H8.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
+        <p id="status" role="status">loading the model list…</p>
+        <div id="mlist"></div>
+        <p class="hint">Click to add, click again to remove. <kbd>Enter</kbd> adds the top match.</p>
+        <details id="pasteBox">
+          <summary>Model list not loading?</summary>
+          <p class="hint">Open <b>openrouter.ai/api/v1/models</b>, copy the JSON and paste it here.</p>
+          <label class="f" style="margin-top:8px"><span>Paste models JSON</span>
+            <textarea id="fPaste" rows="2" placeholder='{"data":[…]}'></textarea></label>
+          <button class="sm" id="btnPaste">Use pasted JSON</button>
+        </details>
+      </div>
+    </section>
+
+    <section class="sec" id="secEntries">
+      <h3><button type="button" class="sech" aria-expanded="true" aria-controls="bodyEntries">
+        <svg class="chev" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="step">3</span><span class="ttl">Numbers</span><em class="count" id="cntEntries"></em></button></h3>
+      <div class="body" id="bodyEntries">
+        <label class="f"><span>Auto-score by</span>
+          <select id="fAuto">
+            <option value="plausible">Plausible descending scores</option>
+            <option value="numbers">Biggest number in the model name</option>
+            <option value="namelen">Length of the model name</option>
+            <option value="alpha">Reverse alphabetical rank</option>
+            <option value="count">Models published on OpenRouter</option>
+            <option value="context">Real context window</option>
+            <option value="price">Real prompt price, per million</option>
+            <option value="perdollar">Real tokens per dollar</option>
+            <option value="vowels">Vowel count</option>
+            <option value="random">Pure noise</option>
+          </select>
+        </label>
+        <div class="row">
+          <button class="sm g" id="btnAuto">Fill in every score</button>
+          <button class="sm g" id="btnBump">Make ours win</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="sm g" id="btnAdd">Add blank row</button>
+          <button class="sm g" id="btnClear">Clear all</button>
+        </div>
+        <p class="hint">The starred row is yours: it takes the accent colour and wins when you ask it to.</p>
+        <div style="height:11px"></div>
+        <div id="entries"></div>
       </div>
     </section>
 
     <section class="sec" id="secChart">
-      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Figure</h3>
-      <div class="body">
+      <h3><button type="button" class="sech" aria-expanded="true" aria-controls="bodyChart">
+        <svg class="chev" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="step">4</span><span class="ttl">Chart style</span></button></h3>
+      <div class="body" id="bodyChart">
         <span class="tiny">Chart type</span>
         <div class="seg" id="segChart" role="group" aria-label="Chart type">
           <button data-v="column" class="on">Columns</button>
@@ -358,19 +531,19 @@
           <button data-v="radar">Radar</button>
         </div>
         <div style="height:13px"></div>
-        <label class="f"><span>Figure heading</span><input type="text" id="fMetric"></label>
+        <label class="f"><span>Heading above the chart</span><input type="text" id="fMetric"></label>
         <div class="grid2" id="axisBox">
           <label class="f" id="xLabelBox"><span>X axis label</span><input type="text" id="fXLabel"></label>
           <label class="f" id="yLabelBox"><span>Y axis label</span><input type="text" id="fYLabel"></label>
         </div>
         <label class="f" id="axesBox" style="display:none">
-          <span>Radar axes</span><input type="text" id="fAxes">
+          <span>Radar axes, comma separated</span><input type="text" id="fAxes">
         </label>
         <label class="f" id="stepsBox" style="display:none">
-          <span>X points</span><input type="text" id="fSteps">
+          <span>X axis points, comma separated</span><input type="text" id="fSteps">
         </label>
 
-        <span class="tiny">Accent</span>
+        <span class="tiny">Accent — the colour of your model</span>
         <div class="row">
           <span class="swatch"><input type="color" id="fAccent"></span>
           <input type="text" id="fAccentHex">
@@ -378,7 +551,7 @@
         <div class="chips" id="chips" role="group" aria-label="Accent presets"></div>
         <div style="height:14px"></div>
 
-        <span class="tiny">Competitor colours</span>
+        <span class="tiny">Everyone else</span>
         <div class="seg" id="segColor" role="group" aria-label="Competitor colours">
           <button data-v="ramp" class="on">Warm ramp</button>
           <button data-v="grey">Grey</button>
@@ -405,62 +578,39 @@
       </div>
     </section>
 
-    <section class="sec" id="secModels">
-      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Models</h3>
-      <div class="body">
-        <span class="tiny">Contenders are</span>
-        <div class="seg" id="segSubject" role="group" aria-label="Contender type">
-          <button data-v="models" class="on">Models</button>
-          <button data-v="labs">Labs</button>
+    <section class="sec" id="secId">
+      <h3><button type="button" class="sech" aria-expanded="true" aria-controls="bodyId">
+        <svg class="chev" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="step">5</span><span class="ttl">Wording</span></button></h3>
+      <div class="body" id="bodyId">
+        <label class="f"><span>Benchmark name</span><input type="text" id="fTitle" placeholder="VERBENCH"></label>
+        <label class="f"><span>Subtitle</span><input type="text" id="fSubtitle" placeholder="One line of methodology"></label>
+        <label class="f"><span>Small line above the title</span><input type="text" id="fEyebrow" placeholder="Announcements"></label>
+        <div class="grid2">
+          <label class="f"><span>Published by</span><input type="text" id="fOrg" placeholder="Your lab"></label>
+          <label class="f"><span>Date</span><input type="text" id="fDate" placeholder="March 2026"></label>
         </div>
-        <div style="height:13px"></div>
+        <label class="f"><span>Footnote (the small print)</span><textarea id="fFootnote" rows="3"></textarea></label>
         <div class="row">
-          <div class="search">
-            <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/><path d="M9.2 9.2L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <input type="text" id="fSearch" placeholder="Search models">
-          </div>
-          <button class="ico" id="btnFetch" title="Reload from OpenRouter" aria-label="Reload the model list from OpenRouter">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M10.5 6a4.5 4.5 0 1 1-1.6-3.45" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10.8 1v2.4H8.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <button class="sm g" id="btnName">Random name</button>
+          <button class="sm g" id="btnFoot">Random small print</button>
         </div>
-        <p id="status" role="status">not loaded</p>
-        <div id="mlist"></div>
-        <p class="hint">If the fetch is blocked, open <b>openrouter.ai/api/v1/models</b>, copy the JSON and paste it here.</p>
-        <label class="f" style="margin-top:10px"><span>Paste models JSON</span>
-          <textarea id="fPaste" rows="2" placeholder='{"data":[…]}'></textarea></label>
-        <button class="sm" id="btnPaste">Use pasted JSON</button>
       </div>
     </section>
 
-    <section class="sec" id="secEntries">
-      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Contenders</h3>
-      <div class="body">
-        <label class="f"><span>Auto-score by</span>
-          <select id="fAuto">
-            <option value="plausible">Plausible descending scores</option>
-            <option value="numbers">Biggest number in the model name</option>
-            <option value="namelen">Length of the model name</option>
-            <option value="alpha">Reverse alphabetical rank</option>
-            <option value="count">Models published on OpenRouter</option>
-            <option value="context">Real context window</option>
-            <option value="price">Real prompt price, per million</option>
-            <option value="perdollar">Real tokens per dollar</option>
-            <option value="vowels">Vowel count</option>
-            <option value="random">Pure noise</option>
-          </select>
-        </label>
-        <div class="row">
-          <button class="sm g" id="btnAuto">Apply to all</button>
-          <button class="sm g" id="btnBump">Make ours win</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="sm g" id="btnAdd">Blank row</button>
-          <button class="sm g" id="btnClear">Clear all</button>
-        </div>
-        <div style="height:15px"></div>
-        <div id="entries"></div>
-      </div>
-    </section>
+    <details id="keys">
+      <summary>Keyboard shortcuts</summary>
+      <dl>
+        <dt><kbd>/</kbd></dt><dd>Jump to model search</dd>
+        <dt><kbd>Enter</kbd></dt><dd>In search: add the top match</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>⇧</kbd> <kbd>Z</kbd></dt><dd>Redo</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>S</kbd></dt><dd>Download the PNG</dd>
+        <dt><kbd>R</kbd></dt><dd>Random preset</dd>
+        <dt><kbd>F</kbd></dt><dd>Inspect the figure full size</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Close the inspector</dd>
+      </dl>
+    </details>
 
   </aside>
 
@@ -481,6 +631,8 @@
   </div>
   <div class="zscroll"><div id="zCard"></div></div>
 </div>
+
+<div id="toasts" aria-live="polite"></div>
 
 <canvas id="cv" style="display:none"></canvas>
 <script>
@@ -884,8 +1036,8 @@ async function fetchModels(){
   }
   if(payload && ingest(payload, "live")) return;
   if(!MODELS.length){ MODELS = FALLBACK.slice(); buildLabs(); }
-  setStatus("live list unavailable" + (why ? " ("+why+")" : "")
-    + " — using " + MODELS.length + " bundled models", "err");
+  setStatus("couldn't reach openrouter" + (why ? " ("+why+")" : "")
+    + " — using " + MODELS.length + " bundled models. retry with ↻, or paste the list below.", "err");
   renderModels();
 }
 /* true when the payload yielded at least one usable model */
@@ -897,7 +1049,8 @@ function ingest(j, how){
   MODELS.sort((a,b)=> String(a.name||a.id).localeCompare(String(b.name||b.id)));
   buildLabs();
   refreshLabEntries();
-  setStatus(MODELS.length + " models, " + LABS.length + " labs (" + how + ")", "ok");
+  setStatus(MODELS.length + " models and " + LABS.length + " labs, "
+    + (how === "live" ? "live from openrouter" : "from your pasted json"), "ok");
   renderModels();
   return true;
 }
@@ -912,7 +1065,9 @@ function renderModels(){
   const hits = pool.filter(m => matches(m, q));
   if(q) hits.sort((a,b)=> scoreModel(b,q) - scoreModel(a,q) || a._n.length - b._n.length);
   const shown = hits.slice(0, LIST_CAP), box = $("mlist");
-  $("fSearch").placeholder = labs ? "Search labs" : "Search models";
+  $("fSearch").placeholder = (labs ? "Search labs" : "Search models") + "  ( / )";
+  $("searchBox").classList.toggle("has", !!q);
+  syncCounts();
   if(!shown.length){
     box.innerHTML = '<div class="mnote" style="border-top:0">'
       + (pool.length ? "Nothing matches that search."
@@ -925,21 +1080,37 @@ function renderModels(){
                      : m.id;
     const tail = labs ? m.model_count + (m.model_count === 1 ? " model" : " models")
                       : (price ? "$"+price.toFixed(2) : "free");
-    return '<button type="button" class="mrow" data-id="'+esc(m.id)+'"'+(added?" disabled":"")
-      + ' aria-label="'+esc((added?"Already added: ":"Add ")+niceLabel(m))+'">'
+    return '<button type="button" class="mrow'+(added?" added":"")+'" data-id="'+esc(m.id)+'"'
+      + ' aria-pressed="'+(added?"true":"false")+'"'
+      + ' title="'+esc((added?"Remove ":"Add ")+niceLabel(m))+'"'
+      + ' aria-label="'+esc((added?"Remove ":"Add ")+niceLabel(m))+'">'
+      + '<svg class="tick" viewBox="0 0 12 12" fill="none" aria-hidden="true">'
+      + '<path d="M2 6.3l2.9 2.9L10 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       + '<span class="nm">'+esc(niceLabel(m))+'<em>'+esc(sub)+'</em></span>'
       + '<span class="pl">'+esc(tail)+'</span></button>';
   }).join("")
   + (hits.length > shown.length
       ? '<div class="mnote">'+shown.length+' of '+hits.length+' matches shown — keep typing</div>'
       : "");
+  /* clicking a row adds it; clicking it again takes it back off the chart */
   box.querySelectorAll(".mrow").forEach(el=>{
     el.onclick = ()=>{
       const m = pool.find(x => x.id === el.dataset.id);
-      if(!m || S.entries.some(e => e.modelId === m.id)) return;
-      addEntry(m);
-      scoreAdded(S.entries[S.entries.length-1], $("fAuto").value);
-      syncAll();
+      if(!m) return;
+      const at = S.entries.findIndex(e => e.modelId === m.id);
+      if(at >= 0){
+        const gone = S.entries[at].label;
+        act("removing " + gone, ()=>{ S.entries.splice(at,1); syncAll(); });
+        toast("Removed " + gone, UNDO);
+      }else{
+        act("adding " + niceLabel(m), ()=>{
+          addEntry(m);
+          scoreAdded(S.entries[S.entries.length-1], $("fAuto").value);
+          syncAll();
+        });
+        openSection("secEntries");
+        toast("Added " + niceLabel(m));
+      }
     };
   });
 }
@@ -993,21 +1164,37 @@ function renderEntries(){
         const f = inp.dataset.f;
         S.entries[i][f] = (f==="score"||f==="cost") ? (parseFloat(inp.value)||0) : inp.value;
         draw();
+        commitEdit(f === "label" ? "renaming a contender" : "a number you typed");
       };
     });
     el.querySelectorAll("button").forEach(b=>{
       b.onclick = ()=>{
-        const a = b.dataset.act;
-        if(a==="rm") S.entries.splice(i,1);
-        else if(a==="hl"){ const was = S.entries[i].hl; S.entries.forEach(x=>x.hl=false); S.entries[i].hl = !was; }
-        else if(a==="up" && i>0) S.entries.splice(i-1,0,S.entries.splice(i,1)[0]);
-        else if(a==="dn" && i<S.entries.length-1) S.entries.splice(i+1,0,S.entries.splice(i,1)[0]);
-        syncAll();
+        const a = b.dataset.act, who = S.entries[i] ? S.entries[i].label : "a row";
+        const label = a==="rm" ? "removing " + who
+                    : a==="hl" ? "changing which model is ours"
+                    : "reordering " + who;
+        act(label, ()=>{
+          if(a==="rm") S.entries.splice(i,1);
+          else if(a==="hl"){ const was = S.entries[i].hl; S.entries.forEach(x=>x.hl=false); S.entries[i].hl = !was; }
+          else if(a==="up" && i>0) S.entries.splice(i-1,0,S.entries.splice(i,1)[0]);
+          else if(a==="dn" && i<S.entries.length-1) S.entries.splice(i+1,0,S.entries.splice(i,1)[0]);
+          syncAll();
+        });
+        if(a==="rm") toast("Removed " + who, UNDO);
       };
     });
   });
 }
 function syncAll(){ renderEntries(); renderModels(); draw(); }
+/* the section headings carry the counts, so a collapsed section still says
+   what is inside it */
+function syncCounts(){
+  const n = S.entries.length;
+  $("cntEntries").textContent = n ? n + (n === 1 ? " row" : " rows") : "empty";
+  $("cntModels").textContent = S.subject === "labs"
+    ? (LABS.length || 0) + " labs"
+    : (MODELS.length || 0) + " models";
+}
 
 /* ══════════════════════════════════════════════════════════════════
    the figure — pure SVG, so the PNG is exactly the preview
@@ -1459,7 +1646,10 @@ function download(blob, name){
 }
 const slug = () => (S.title||"benchmark").toLowerCase().replace(/[^a-z0-9]+/g,"-")
   .replace(/^-|-$/g,"") || "benchmark";
-function exportSVG(){ download(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}), slug()+".svg"); }
+function exportSVG(){
+  download(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}), slug()+".svg");
+  toast("Saved " + slug() + ".svg");
+}
 function exportPNG(){
   const w = W, h = lastH || 900, k = 2;
   const btn = $("btnPng"), was = btn.innerHTML;
@@ -1471,7 +1661,11 @@ function exportPNG(){
     const ctx = cv.getContext("2d");
     ctx.fillStyle = C.card; ctx.fillRect(0,0,cv.width,cv.height);
     ctx.drawImage(img, 0, 0, cv.width, cv.height);
-    cv.toBlob(b=>{ download(b, slug()+"@2x.png"); btn.innerHTML = was; }, "image/png");
+    cv.toBlob(b=>{
+      download(b, slug()+"@2x.png");
+      btn.innerHTML = was;
+      toast("Saved " + slug() + "@2x.png");
+    }, "image/png");
     URL.revokeObjectURL(url);
   };
   img.onerror = ()=>{ btn.innerHTML = was; URL.revokeObjectURL(url);
@@ -1778,9 +1972,150 @@ function renderPresets(){
   $("presets").querySelectorAll(".prow").forEach(el=>{
     el.onclick = ()=>{
       const p = PRESETS.find(x => x.id === el.dataset.p);
-      if(p) applyPreset(p);
+      if(!p) return;
+      act("loading the " + p.name + " preset", ()=> applyPreset(p));
+      toast("Loaded " + p.name, UNDO);
     };
   });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   toasts — an action that changes something off-screen has to say so
+   ══════════════════════════════════════════════════════════════════ */
+function toast(msg, action){
+  const box = $("toasts");
+  const el  = document.createElement("div");
+  el.className = "toast";
+  const txt = document.createElement("span");
+  txt.textContent = msg;
+  el.appendChild(txt);
+  let timer = 0;
+  const close = ()=>{ clearTimeout(timer); if(el.parentNode) el.parentNode.removeChild(el); };
+  if(action){
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = action.label;
+    b.onclick = ()=>{ close(); action.run(); };
+    el.appendChild(b);
+  }
+  box.appendChild(el);
+  while(box.children.length > 3) box.removeChild(box.firstChild);
+  timer = setTimeout(close, action ? 7000 : 2600);
+  return close;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   history — everything destructive is one keystroke away from coming back
+   ══════════════════════════════════════════════════════════════════ */
+const HIST_MAX = 40;
+let past = [], future = [], baseline = null;
+const UNDO = {label:"Undo", run: ()=> undo()};
+
+function snapshot(){ return JSON.stringify({s: slimState(), auto: $("fAuto").value}); }
+function restore(str){
+  let j;
+  try{ j = JSON.parse(str); }catch(err){ return; }
+  Object.assign(S, j.s);
+  normalizeState();
+  if(AUTO_MODES.indexOf(j.auto) >= 0) $("fAuto").value = j.auto;
+  pushToInputs(); syncChartUI(); syncAll();
+  baseline = snapshot();
+}
+/* commit records the state as it was *before* the change just made */
+function commit(label){
+  if(baseline === null){ baseline = snapshot(); return; }
+  const now = snapshot();
+  if(now === baseline) return;                 // nothing actually moved
+  past.push({state: baseline, label: label || "that change"});
+  if(past.length > HIST_MAX) past.shift();
+  future.length = 0;
+  baseline = now;
+  syncHistoryUI();
+}
+/* typing is coalesced: a burst of keystrokes is one undo step, not thirty */
+let editTimer = 0, editLabel = "";
+function commitEdit(label){
+  editLabel = label || "an edit";
+  clearTimeout(editTimer);
+  editTimer = setTimeout(()=>{ editTimer = 0; commit(editLabel); }, 800);
+}
+function flushEdit(){
+  if(!editTimer) return;
+  clearTimeout(editTimer); editTimer = 0;
+  commit(editLabel);
+}
+/* every discrete change goes through here, so undo always has a label */
+function act(label, fn){ flushEdit(); fn(); commit(label); }
+function undo(){
+  flushEdit();
+  if(!past.length){ toast("Nothing to undo"); return; }
+  const step = past.pop();
+  future.push({state: snapshot(), label: step.label});
+  restore(step.state);
+  syncHistoryUI();
+  toast("Undid " + step.label, {label:"Redo", run: ()=> redo()});
+}
+function redo(){
+  flushEdit();
+  if(!future.length){ toast("Nothing to redo"); return; }
+  const step = future.pop();
+  past.push({state: snapshot(), label: step.label});
+  restore(step.state);
+  syncHistoryUI();
+  toast("Redid " + step.label);
+}
+function syncHistoryUI(){
+  const b = $("btnUndo"), key = IS_MAC ? "⌘Z" : "Ctrl+Z";
+  b.disabled = !past.length;
+  b.title = past.length ? "Undo " + past[past.length-1].label + " (" + key + ")" : "Nothing to undo";
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   sidebar sections — collapsible, keyboard-reachable, remembered
+   ══════════════════════════════════════════════════════════════════ */
+const UI_KEY = "benchmaxxer.ui.v1";
+function loadUI(){
+  try{ return JSON.parse(localStorage.getItem(UI_KEY)) || {}; }catch(err){ return {}; }
+}
+function saveUI(patch){
+  try{ localStorage.setItem(UI_KEY, JSON.stringify(Object.assign(loadUI(), patch))); }
+  catch(err){ /* private mode — the layout is not worth a dialog */ }
+}
+function setSection(sec, open){
+  if(!sec) return;
+  sec.classList.toggle("collapsed", !open);
+  const b = sec.querySelector(".sech");
+  if(b) b.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function openSection(id){
+  const sec = $(id);
+  if(sec && sec.classList.contains("collapsed")){ setSection(sec, true); saveSections(); }
+}
+function saveSections(){
+  saveUI({collapsed: Array.prototype.filter.call(document.querySelectorAll(".sec"),
+    s => s.classList.contains("collapsed")).map(s => s.id)});
+}
+/* the shortcut is the same key, but a Mac user looks for ⌘, not Ctrl */
+const IS_MAC = (()=>{ try{
+  return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || "");
+}catch(err){ return false; } })();
+function labelKeys(){
+  if(!IS_MAC) return;
+  document.querySelectorAll("#keys kbd").forEach(k=>{
+    if(k.textContent === "Ctrl") k.textContent = "⌘";
+  });
+  $("btnUndo").title = "Undo (⌘Z)";
+  $("btnPng").title  = "Download PNG (⌘S)";
+}
+function initSections(){
+  const ui = loadUI();
+  const secs = document.querySelectorAll(".sec");
+  if(Array.isArray(ui.collapsed))
+    secs.forEach(s => setSection(s, ui.collapsed.indexOf(s.id) < 0));
+  else if(isSmall())
+    secs.forEach((s,i) => setSection(s, i === 0));       // one thing at a time on a phone
+  else
+    secs.forEach(s => setSection(s, true));
+  if(ui.guide === "off") $("guide").hidden = true;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1832,11 +2167,25 @@ function syncChartUI(){
   show("swErr",  isCol || isBar);
   show("swRank", isCol || isBar);
 }
+const FIELD_NAMES = {
+  fEyebrow:"the line above the title", fTitle:"the benchmark name", fSubtitle:"the subtitle",
+  fOrg:"the publisher", fDate:"the date", fFootnote:"the footnote", fMetric:"the chart heading",
+  fXLabel:"the x axis label", fYLabel:"the y axis label", fAxes:"the radar axes",
+  fSteps:"the x axis points", fMax:"the axis maximum", fSuffix:"the value suffix"
+};
 for(const [id,k] of Object.entries(TEXT_FIELDS))
-  $(id).addEventListener("input", e=>{ S[k] = e.target.value; draw(); });
+  $(id).addEventListener("input", e=>{
+    S[k] = e.target.value; draw();
+    commitEdit("an edit to " + (FIELD_NAMES[id] || "the wording"));
+  });
 for(const [id,k] of Object.entries(CHECKS))
-  $(id).addEventListener("change", e=>{ S[k] = e.target.checked; draw(); });
-$("fDec").addEventListener("change", e=>{ S.dec = +e.target.value; draw(); });
+  $(id).addEventListener("change", e=>{
+    const name = (e.target.parentElement.querySelector("span") || {}).textContent || "a setting";
+    act('the "' + name + '" switch', ()=>{ S[k] = e.target.checked; draw(); });
+  });
+$("fDec").addEventListener("change", e=>{
+  act("the decimal places", ()=>{ S.dec = +e.target.value; draw(); });
+});
 function setAccent(v){
   S.accent = v; $("fAccent").value = v; $("fAccentHex").value = v;
   document.querySelectorAll("#chips .chip").forEach(b=>
@@ -1844,33 +2193,71 @@ function setAccent(v){
   syncPressed("#chips");
   syncAll();
 }
-$("fAccent").addEventListener("input", e=> setAccent(e.target.value));
+$("fAccent").addEventListener("input", e=>{
+  setAccent(e.target.value); commitEdit("the accent colour");
+});
 $("fAccentHex").addEventListener("input", e=>{
   const v = e.target.value.trim();
-  if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) setAccent(v);
+  if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)){ setAccent(v); commitEdit("the accent colour"); }
 });
 $("chips").innerHTML = CHIPS.map(c=>
   '<button class="chip" data-v="'+c+'" style="background:'+c+'" title="'+c+
   '" aria-label="Accent '+c+'"></button>').join("");
-$("chips").querySelectorAll(".chip").forEach(b=> b.onclick = ()=> setAccent(b.dataset.v));
+$("chips").querySelectorAll(".chip").forEach(b=>
+  b.onclick = ()=> act("the accent colour", ()=> setAccent(b.dataset.v)));
 document.querySelectorAll("#segChart button").forEach(b=>
-  b.onclick = ()=>{ S.chart = b.dataset.v; syncChartUI(); syncAll(); });
+  b.onclick = ()=> act("the chart type", ()=>{ S.chart = b.dataset.v; syncChartUI(); syncAll(); }));
 document.querySelectorAll("#segSubject button").forEach(b=>
   b.onclick = ()=>{
     if(S.subject === b.dataset.v) return;
-    S.subject = b.dataset.v;
-    syncSubjectUI();
+    act("the switch to " + (b.dataset.v === "labs" ? "labs" : "models"), ()=>{
+      S.subject = b.dataset.v;
+      syncSubjectUI();
+      renderModels();
+      queueSave();
+    });
+    $("fSearch").value = "";
     renderModels();
-    queueSave();
   });
 document.querySelectorAll("#segColor button").forEach(b=>
-  b.onclick = ()=>{ S.colorMode = b.dataset.v;
+  b.onclick = ()=> act("the competitor colours", ()=>{
+    S.colorMode = b.dataset.v;
     document.querySelectorAll("#segColor button").forEach(x=>x.classList.toggle("on", x===b));
     syncPressed("#segColor");
-    syncAll(); });
-document.querySelectorAll(".sec > h3").forEach(h=>
-  h.onclick = ()=> h.parentElement.classList.toggle("collapsed"));
+    syncAll();
+  }));
+document.querySelectorAll(".sec > h3 > .sech").forEach(b=>
+  b.onclick = ()=>{
+    const sec = b.parentElement.parentElement;
+    setSection(sec, sec.classList.contains("collapsed"));
+    saveSections();
+  });
+$("guideHide").onclick = ()=>{ $("guide").hidden = true; saveUI({guide:"off"}); };
+
+/* ── model search ──────────────────────────────────────────────── */
+function clearSearch(){
+  $("fSearch").value = "";
+  renderModels();
+  $("fSearch").focus();
+}
+function focusSearch(){
+  openSection("secModels");
+  const el = $("fSearch");
+  el.focus(); el.select();
+  el.scrollIntoView({block:"nearest"});
+}
 $("fSearch").addEventListener("input", renderModels);
+$("fSearch").addEventListener("keydown", e=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    const first = $("mlist").querySelector(".mrow");
+    if(first) first.click();
+  }else if(e.key === "Escape" && $("fSearch").value){
+    e.stopPropagation();               // clear the search, don't close the inspector
+    clearSearch();
+  }
+});
+$("btnClearSearch").onclick = clearSearch;
 $("btnFetch").onclick = fetchModels;
 $("btnPaste").onclick = ()=>{
   const raw = $("fPaste").value.trim();
@@ -1879,20 +2266,64 @@ $("btnPaste").onclick = ()=>{
   try{ j = JSON.parse(raw); }
   catch(err){ setStatus("could not parse that JSON: " + err.message, "err"); return; }
   if(!ingest(j, "pasted")) setStatus("that JSON contained no models with an id", "err");
+  else toast(MODELS.length + " models loaded from your paste");
 };
-$("btnAuto").onclick = ()=>{ autoScore($("fAuto").value); syncAll(); };
-$("btnBump").onclick = ()=>{ bumpOurs(); syncAll(); };
-$("btnClear").onclick = ()=>{ S.entries = []; syncAll(); };
-$("btnAdd").onclick   = ()=>{
-  addEntry(null);
-  S.entries[S.entries.length-1].label = "Our Model (ours)";
-  syncAll();
+
+/* ── contenders ────────────────────────────────────────────────── */
+const AUTO_NAMES = {};
+Array.prototype.forEach.call($("fAuto").options, o=>{ AUTO_NAMES[o.value] = o.textContent; });
+$("btnAuto").onclick = ()=>{
+  if(!S.entries.length){ toast("Add some contenders first"); openSection("secModels"); return; }
+  const mode = $("fAuto").value;
+  act("refilling every score", ()=>{ autoScore(mode); syncAll(); });
+  toast("Scores refilled: " + (AUTO_NAMES[mode] || mode).toLowerCase(), UNDO);
 };
-$("btnName").onclick   = randomName;
-$("btnFoot").onclick   = randomFoot;
-$("btnPreset").onclick = shufflePreset;
-$("btnPng").onclick    = exportPNG;
-$("btnSvg").onclick    = exportSVG;
+$("btnBump").onclick = ()=>{
+  if(!S.entries.length){ toast("Add some contenders first"); openSection("secModels"); return; }
+  act("making ours win", ()=>{ bumpOurs(); syncAll(); });
+  const ours = S.entries.find(e=>e.hl);
+  toast((ours ? ours.label : "Our model") + " now leads", UNDO);
+};
+$("btnClear").onclick = ()=>{
+  const n = S.entries.length;
+  if(!n){ toast("Nothing to clear"); return; }
+  act("clearing the contenders", ()=>{ S.entries = []; syncAll(); });
+  toast("Cleared " + n + (n === 1 ? " contender" : " contenders"), UNDO);
+};
+$("btnAdd").onclick = ()=>{
+  act("adding a blank row", ()=>{
+    addEntry(null);
+    S.entries[S.entries.length-1].label = "Our Model (ours)";
+    syncAll();
+  });
+  openSection("secEntries");
+  const last = $("entries").querySelector(".ent:last-child input[data-f=label]");
+  if(last){ last.focus(); last.select(); }
+};
+
+/* ── wording, presets, export ──────────────────────────────────── */
+$("btnName").onclick = ()=>{
+  act("a random name", randomName);
+  toast("New name: " + S.title, UNDO);
+};
+$("btnFoot").onclick = ()=>{
+  act("random small print", randomFoot);
+  toast("New small print", UNDO);
+};
+function shuffleFromUI(){
+  act("loading a preset", shufflePreset);
+  const p = PRESETS.find(x => x.id === activePreset);
+  toast("Loaded " + (p ? p.name : "a preset"), UNDO);
+}
+$("btnPreset").onclick  = shuffleFromUI;
+$("btnShuffle").onclick = shuffleFromUI;
+$("btnReset").onclick   = ()=>{
+  act("starting over", ()=> applyPreset(PRESETS[0]));
+  toast("Back to the first preset", UNDO);
+};
+$("btnUndo").onclick = ()=> undo();
+$("btnPng").onclick  = exportPNG;
+$("btnSvg").onclick  = exportSVG;
 
 /* ── tap-to-inspect: the phone preview is too small to read ────── */
 const isSmall = () => window.matchMedia("(max-width:900px)").matches;
@@ -1934,7 +2365,34 @@ function openZoomCentre(){
   requestAnimationFrame(()=>{ sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth)/2); });
 }
 $("zoom").addEventListener("click", e=>{ if(e.target.id === "zoom") closeZoom(); });
-document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeZoom(); });
+
+/* ── keyboard ──────────────────────────────────────────────────── */
+function typingIn(el){
+  if(!el) return false;
+  const t = el.tagName;
+  return t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || el.isContentEditable;
+}
+document.addEventListener("keydown", e=>{
+  const mod = e.metaKey || e.ctrlKey;
+  if(mod && (e.key === "z" || e.key === "Z")){
+    e.preventDefault(); if(e.shiftKey) redo(); else undo(); return;
+  }
+  if(mod && (e.key === "y" || e.key === "Y")){ e.preventDefault(); redo(); return; }
+  if(mod && (e.key === "s" || e.key === "S")){
+    e.preventDefault(); if(e.shiftKey) exportSVG(); else exportPNG(); return;
+  }
+  if(e.key === "Escape"){ closeZoom(); return; }
+  /* the inspector covers the editor, so single keys must not reach it */
+  if(mod || e.altKey || !$("zoom").hidden || typingIn(document.activeElement)) return;
+  if(e.key === "/"){ e.preventDefault(); focusSearch(); }
+  else if(e.key === "r" || e.key === "R"){ shuffleFromUI(); }
+  else if(e.key === "f" || e.key === "F"){ openZoom(); }
+  else if(e.key === "?"){
+    const k = $("keys");
+    k.open = true;
+    k.scrollIntoView({block:"nearest"});
+  }
+});
 
 /* ══════════════════════════════════════════════════════════════════
    persistence — a stray reload used to cost you every number you typed
@@ -1945,19 +2403,29 @@ const COLOR_MODES = ["ramp","grey","all"];
 const AUTO_MODES = ["plausible","numbers","namelen","alpha","count","context","price","perdollar","vowels","random"];
 let saveTimer = 0;
 function queueSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 400); }
+/* keep only the model fields the scorers read, not the whole OpenRouter
+   record: it is what gets stored, and what every undo step holds in memory */
+function slimMeta(m){
+  if(!m) return null;
+  const out = {context_length: m.context_length,
+               pricing: {prompt: (m.pricing||{}).prompt}};
+  if(m.lab) out.lab = true;
+  if(m.model_count) out.model_count = m.model_count;
+  return out;
+}
+function slimState(){
+  return Object.assign({}, S, {entries: S.entries.map(e=>({
+    id:e.id, label:e.label, modelId:e.modelId,
+    score:e.score, cost:e.cost, series:e.series, hl:e.hl,
+    meta: slimMeta(e.meta)
+  }))});
+}
 function saveState(){
   try{
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       v: 1,
       auto: $("fAuto").value,
-      /* keep only the two model fields the scorers read, not the whole
-         OpenRouter record */
-      s: Object.assign({}, S, {entries: S.entries.map(e=>({
-        id:e.id, label:e.label, modelId:e.modelId,
-        score:e.score, cost:e.cost, series:e.series, hl:e.hl,
-        meta: e.meta ? {context_length: e.meta.context_length,
-                        pricing: {prompt: (e.meta.pricing||{}).prompt}} : null
-      }))})
+      s: slimState()
     }));
   }catch(err){ /* private mode, or the quota is full — not worth a dialog */ }
 }
@@ -2010,9 +2478,11 @@ renderPresets();
 if(loadState()){ pushToInputs(); syncChartUI(); syncAll(); }
 else applyPreset(PRESETS[0]);
 syncPressed("#segZoom");
-if(isSmall()) document.querySelectorAll(".sec").forEach((el,i)=>{
-  if(i > 0) el.classList.add("collapsed");
-});
+initSections();
+labelKeys();
+baseline = snapshot();          // history starts here: boot is not an undo step
+syncHistoryUI();
+syncCounts();
 fetchModels();
 </script>
 </body>
