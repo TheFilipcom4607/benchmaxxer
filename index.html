@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Benchmaxxer — Fake Benchmark Figure Studio</title>
+<style>
+  :root{
+    --bg:#EFEFEE;
+    --panel:#FFFFFF;
+    --panel2:#F7F7F6;
+    --panel3:#F1F1F0;
+    --line:#E3E3E1;
+    --line2:#EDEDEB;
+    --ink:#1A1A18;
+    --ink2:#5B5B58;
+    --ink3:#8B8B87;
+    --ink4:#B4B4AF;
+    --primary:#232321;
+    --focus:rgba(0,0,0,.09);
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:13px/1.5 var(--sans);-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  /* ── top bar ───────────────────────────────────────────── */
+  header.bar{
+    flex:0 0 auto;display:flex;align-items:center;gap:10px;
+    padding:0 16px;height:53px;background:var(--panel);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+  .brand b{font:650 14.5px/1 var(--sans);letter-spacing:-.3px}
+  .brand i{
+    font:400 11px/1 var(--sans);font-style:normal;color:var(--ink3);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bar .spacer{flex:1}
+  /* ── layout ────────────────────────────────────────────── */
+  main{flex:1;display:flex;min-height:0}
+  #side{
+    flex:0 0 396px;max-width:396px;overflow-y:auto;overscroll-behavior:contain;
+    background:var(--panel);border-right:1px solid var(--line);padding-bottom:64px;
+  }
+  #stage{
+    flex:1;min-width:0;overflow:auto;padding:32px 32px 56px;
+    display:flex;align-items:flex-start;justify-content:center;background:var(--bg);
+  }
+  #cardWrap{width:100%;max-width:1120px}
+  #cardWrap svg{
+    display:block;width:100%;height:auto;
+    box-shadow:0 1px 2px rgba(0,0,0,.06),0 14px 36px -10px rgba(0,0,0,.16);
+  }
+  /* ── sections ──────────────────────────────────────────── */
+  .sec{border-bottom:1px solid var(--line2)}
+  .sec>h3{
+    margin:0;padding:13px 16px;cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:9px;
+    font:600 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);
+  }
+  .sec>h3:hover{color:var(--ink)}
+  .sec>h3 svg{width:9px;height:9px;flex:0 0 auto;transition:transform .16s ease;color:var(--ink4)}
+  .sec.collapsed>h3 svg{transform:rotate(-90deg)}
+  .sec.collapsed>.body{display:none}
+  .sec>.body{padding:0 16px 18px}
+  /* ── fields ────────────────────────────────────────────── */
+  .f{display:block;margin-bottom:11px}
+  .f>span,.tiny{
+    display:block;margin-bottom:5px;
+    font:600 9.5px/1.2 var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);
+  }
+  input[type=text],input[type=number],textarea,select{
+    width:100%;background:var(--panel);color:var(--ink);
+    border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;
+    font:12.5px/1.35 var(--sans);outline:none;transition:border-color .12s,box-shadow .12s;
+  }
+  input[type=text]:hover,input[type=number]:hover,textarea:hover,select:hover{border-color:#D0D0CD}
+  input:focus,textarea:focus,select:focus{border-color:#9A9A96;box-shadow:0 0 0 3px var(--focus)}
+  input::placeholder,textarea::placeholder{color:var(--ink4)}
+  textarea{resize:vertical;line-height:1.5}
+  select{
+    appearance:none;cursor:pointer;padding-right:26px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%238B8B87' stroke-width='1.6' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 9px center;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .row{display:flex;gap:7px;align-items:center}
+  /* buttons */
+  button{
+    background:var(--panel);color:var(--ink);border:1px solid var(--line);
+    border-radius:var(--r);padding:7px 11px;cursor:pointer;
+    font:550 12px/1 var(--sans);transition:background .12s,border-color .12s;
+  }
+  button:hover{background:var(--panel2);border-color:#D0D0CD}
+  button:active{background:var(--panel3)}
+  button.p{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+  button.p:hover{background:#000;border-color:#000}
+  button.g{flex:1}
+  button.sm{padding:6px 9px;font-size:11.5px}
+  button[disabled]{opacity:.3;cursor:default}
+  button[disabled]:hover{background:var(--panel);border-color:var(--line)}
+  /* segmented */
+  .seg{display:flex;background:var(--panel3);border-radius:9px;padding:2px;gap:2px}
+  .seg button{
+    flex:1;border:0;background:transparent;padding:6px 2px;border-radius:7px;
+    font-size:11.5px;font-weight:550;color:var(--ink2);
+  }
+  .seg button:hover{background:rgba(0,0,0,.04)}
+  .seg button.on{background:var(--panel);color:var(--ink);font-weight:650;box-shadow:0 1px 2px rgba(0,0,0,.09)}
+  /* switches */
+  .sw{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer;font-size:12.5px}
+  .sw input{position:absolute;opacity:0;pointer-events:none}
+  .sw i{
+    flex:0 0 auto;width:30px;height:18px;border-radius:99px;background:#D7D7D4;
+    position:relative;transition:background .16s;
+  }
+  .sw i::after{
+    content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.22);transition:transform .16s;
+  }
+  .sw input:checked + i{background:var(--primary)}
+  .sw input:checked + i::after{transform:translateX(12px)}
+  .sw input:focus-visible + i{box-shadow:0 0 0 3px var(--focus)}
+  .sw span{flex:1;color:var(--ink)}
+  .hint{font-size:11.5px;color:var(--ink3);line-height:1.5;margin:8px 0 0}
+  .hint b{font:400 11px/1 var(--mono);color:var(--ink2)}
+  /* colour */
+  .swatch{
+    position:relative;width:34px;height:32px;flex:0 0 auto;border-radius:var(--r);
+    border:1px solid var(--line);overflow:hidden;cursor:pointer;
+  }
+  .swatch input{position:absolute;inset:-6px;width:150%;height:150%;border:0;padding:0;cursor:pointer}
+  .chips{display:flex;gap:6px;margin-top:8px}
+  .chip{width:21px;height:21px;border-radius:6px;border:1px solid rgba(0,0,0,.1);cursor:pointer;padding:0}
+  .chip.on{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--primary)}
+  /* ── model picker ──────────────────────────────────────── */
+  .search{position:relative;flex:1}
+  .search svg{position:absolute;left:10px;top:10px;width:13px;height:13px;color:var(--ink3)}
+  .search input{padding-left:30px}
+  #status{margin:9px 0 0;font:400 11px/1.4 var(--mono);color:var(--ink3)}
+  #status.ok{color:#5B7A52}
+  #status.err{color:#A2543D}
+  #mlist{
+    margin-top:9px;max-height:292px;overflow-y:auto;
+    border:1px solid var(--line);border-radius:10px;background:var(--panel2);
+  }
+  .mrow{
+    display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;
+    border-bottom:1px solid var(--line2);
+  }
+  .mrow:last-child{border-bottom:0}
+  .mrow:hover{background:var(--panel)}
+  .mrow.added{opacity:.4;cursor:default}
+  .mrow .nm{flex:1;min-width:0;font-size:12.5px;font-weight:550;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mrow .nm em{
+    display:block;font:400 10px/1.45 var(--mono);font-style:normal;color:var(--ink3);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .mrow .pl{font:400 10.5px/1 var(--mono);color:var(--ink3);flex:0 0 auto}
+  /* ── contenders ────────────────────────────────────────── */
+  .ent{
+    border:1px solid var(--line);border-radius:10px;background:var(--panel2);
+    padding:9px;margin-bottom:9px;
+  }
+  .ent.hl{border-color:#B9B9B4;background:var(--panel3)}
+  .ent .top{display:flex;gap:6px;align-items:center}
+  .ent .top input[type=text]{flex:1;font-weight:550}
+  .bead{width:9px;height:18px;border-radius:2px;flex:0 0 auto}
+  .ico{
+    width:27px;height:29px;padding:0;flex:0 0 auto;
+    display:inline-flex;align-items:center;justify-content:center;color:var(--ink2);
+  }
+  .ico svg{width:11px;height:11px}
+  .ico.star{color:var(--ink4)}
+  .ico.star.on{color:var(--ink);border-color:#B9B9B4;background:var(--panel3)}
+  .ent .nums{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .ent .nums.wide{grid-template-columns:1fr}
+  #empty{
+    border:1px dashed var(--line);border-radius:10px;padding:18px 12px;text-align:center;
+    color:var(--ink3);font-size:12.5px;
+  }
+  /* ── inspect overlay ───────────────────────────────────── */
+  #zoom{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column}
+  #zoom[hidden]{display:none!important}
+  .zbar{
+    flex:0 0 auto;height:50px;display:flex;align-items:center;justify-content:space-between;
+    gap:10px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line);
+  }
+  .zbar span{font-size:12px;color:var(--ink3)}
+  .zscroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px}
+  #zCard{width:1200px}
+  #zCard svg{display:block;width:1200px;height:auto;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  #zCard.fit{width:100%}
+  #zCard.fit svg{width:100%}
+  .zbar .seg{flex:0 0 auto}
+  .zbar .seg button{min-width:46px;padding:6px 10px;min-height:30px;font-size:11.5px}
+  .lbl-s{display:none}
+  #tapHint{display:none}
+
+  /* ── phones and small tablets ──────────────────────────── */
+  @media (max-width:900px){
+    header.bar{height:50px;padding:0 11px;gap:7px}
+    .brand i{display:none}
+    .brand b{font-size:14px}
+    .lbl-l{display:none}
+    .lbl-s{display:inline}
+    header.bar button{padding:8px 10px;font-size:12px}
+
+    main{flex-direction:column;overflow:hidden}
+    #stage{
+      order:0;flex:0 0 auto;padding:11px 11px 8px;overflow:visible;
+      flex-direction:column;align-items:stretch;
+      border-bottom:1px solid var(--line);
+    }
+    #cardWrap{max-width:none}
+    #cardWrap svg{max-height:31vh;cursor:zoom-in;border-radius:2px}
+    #tapHint{
+      display:block;margin:8px 0 0;text-align:center;
+      font:500 10px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink4);
+    }
+    #side{
+      order:1;flex:1 1 auto;min-height:0;max-width:none;width:100%;
+      overflow-y:auto;border-right:0;padding-bottom:32px;
+    }
+    /* 16px inputs stop iOS from zooming the page on focus */
+    input[type=text],input[type=number],textarea,select{font-size:16px;padding:10px 11px}
+    select{padding-right:30px;background-position:right 11px center}
+    button{padding:10px 13px;font-size:13px;min-height:40px}
+    button.sm{padding:9px 11px;font-size:12.5px;min-height:38px}
+    .seg{flex-wrap:wrap;padding:3px;gap:3px}
+    .seg button{min-width:82px;min-height:36px;font-size:12.5px}
+    .sw{padding:10px 0;font-size:14px;gap:12px}
+    .sw i{width:40px;height:24px}
+    .sw i::after{width:19px;height:19px}
+    .sw input:checked + i::after{transform:translateX(15px)}
+    .f>span,.tiny{font-size:10.5px;margin-bottom:7px}
+    .sec>h3{padding:16px}
+    .sec>.body{padding:0 16px 20px}
+    .swatch{width:46px;height:42px}
+    .chip{width:30px;height:30px}
+    .chips{gap:9px}
+    .ico{width:38px;height:38px;min-height:38px}
+    .ico svg{width:13px;height:13px}
+    .bead{width:10px;height:24px}
+    #mlist{max-height:46vh}
+    .mrow{padding:11px 11px}
+    .mrow .nm{font-size:13.5px}
+    .ent{padding:11px}
+    .zscroll{padding:10px}
+  }
+  @media (max-width:900px) and (orientation:landscape){
+    #cardWrap svg{max-height:46vh}
+  }
+  /* ── narrow desktop / tablet split ─────────────────────── */
+  @media (min-width:901px) and (max-width:1180px){
+    #side{flex-basis:330px;max-width:330px}
+    #stage{padding:20px 20px 40px}
+  }
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#D4D4D0;border-radius:8px;border:3px solid var(--panel)}
+  ::-webkit-scrollbar-thumb:hover{background:#C2C2BD}
+  ::-webkit-scrollbar-track{background:transparent}
+  #mlist::-webkit-scrollbar-thumb{border-color:var(--panel2)}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand"><b>Benchmaxxer</b><i>fake benchmark figure studio</i></div>
+  <div class="spacer"></div>
+  <button id="btnPreset"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
+  <button id="btnSvg">SVG</button>
+  <button class="p" id="btnPng"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
+</header>
+
+<main>
+  <aside id="side">
+
+    <section class="sec" id="secId">
+      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Benchmark identity</h3>
+      <div class="body">
+        <label class="f"><span>Eyebrow</span><input type="text" id="fEyebrow"></label>
+        <label class="f"><span>Benchmark name</span><input type="text" id="fTitle"></label>
+        <label class="f"><span>Subtitle</span><input type="text" id="fSubtitle"></label>
+        <div class="grid2">
+          <label class="f"><span>Org wordmark</span><input type="text" id="fOrg"></label>
+          <label class="f"><span>Date / version</span><input type="text" id="fDate"></label>
+        </div>
+        <label class="f"><span>Footnote</span><textarea id="fFootnote" rows="3"></textarea></label>
+        <div class="row">
+          <button class="sm g" id="btnName">Random name</button>
+          <button class="sm g" id="btnFoot">Random small print</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="secChart">
+      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Figure</h3>
+      <div class="body">
+        <span class="tiny">Chart type</span>
+        <div class="seg" id="segChart">
+          <button data-v="column" class="on">Columns</button>
+          <button data-v="bar">Bars</button>
+          <button data-v="scatter">Scatter</button>
+          <button data-v="line">Line</button>
+          <button data-v="radar">Radar</button>
+        </div>
+        <div style="height:13px"></div>
+        <label class="f"><span>Figure heading</span><input type="text" id="fMetric"></label>
+        <div class="grid2" id="axisBox">
+          <label class="f" id="xLabelBox"><span>X axis label</span><input type="text" id="fXLabel"></label>
+          <label class="f" id="yLabelBox"><span>Y axis label</span><input type="text" id="fYLabel"></label>
+        </div>
+        <label class="f" id="axesBox" style="display:none">
+          <span>Radar axes</span><input type="text" id="fAxes">
+        </label>
+        <label class="f" id="stepsBox" style="display:none">
+          <span>X points</span><input type="text" id="fSteps">
+        </label>
+
+        <span class="tiny">Accent</span>
+        <div class="row">
+          <span class="swatch"><input type="color" id="fAccent"></span>
+          <input type="text" id="fAccentHex">
+        </div>
+        <div class="chips" id="chips"></div>
+        <div style="height:14px"></div>
+
+        <span class="tiny">Competitor colours</span>
+        <div class="seg" id="segColor">
+          <button data-v="ramp" class="on">Warm ramp</button>
+          <button data-v="grey">Grey</button>
+          <button data-v="all">All distinct</button>
+        </div>
+        <div style="height:14px"></div>
+
+        <div class="grid2">
+          <label class="f"><span>Axis max</span><input type="text" id="fMax" placeholder="auto"></label>
+          <label class="f"><span>Decimals</span>
+            <select id="fDec"><option>0</option><option selected>1</option><option>2</option></select></label>
+        </div>
+        <label class="f"><span>Value suffix</span><input type="text" id="fSuffix" placeholder="e.g. %"></label>
+
+        <label class="sw" id="swZoom"><input type="checkbox" id="cZoom" checked><i></i><span>Crop the axis, mark the break</span></label>
+        <label class="sw" id="swSort"><input type="checkbox" id="cSort" checked><i></i><span>Sort by value, descending</span></label>
+        <label class="sw"><input type="checkbox" id="cValues" checked><i></i><span>Print values on the figure</span></label>
+        <label class="sw"><input type="checkbox" id="cGrid" checked><i></i><span>Grid lines</span></label>
+        <label class="sw" id="swErr"><input type="checkbox" id="cErr"><i></i><span>Error bars</span></label>
+        <label class="sw" id="swRank"><input type="checkbox" id="cRank"><i></i><span>Rank numerals</span></label>
+        <label class="sw"><input type="checkbox" id="cHib" checked><i></i><span>"higher is better" note</span></label>
+        <label class="sw"><input type="checkbox" id="cCenter" checked><i></i><span>Centre the header</span></label>
+        <label class="sw"><input type="checkbox" id="cSerif"><i></i><span>Serif title</span></label>
+      </div>
+    </section>
+
+    <section class="sec" id="secModels">
+      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Models</h3>
+      <div class="body">
+        <div class="row">
+          <div class="search">
+            <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/><path d="M9.2 9.2L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="text" id="fSearch" placeholder="Search models">
+          </div>
+          <button class="ico" id="btnFetch" title="Reload from OpenRouter">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M10.5 6a4.5 4.5 0 1 1-1.6-3.45" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10.8 1v2.4H8.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p id="status">not loaded</p>
+        <div id="mlist"></div>
+        <p class="hint">If the fetch is blocked, open <b>openrouter.ai/api/v1/models</b>, copy the JSON and paste it here.</p>
+        <label class="f" style="margin-top:10px"><span>Paste models JSON</span>
+          <textarea id="fPaste" rows="2" placeholder='{"data":[…]}'></textarea></label>
+        <button class="sm" id="btnPaste">Use pasted JSON</button>
+      </div>
+    </section>
+
+    <section class="sec" id="secEntries">
+      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Contenders</h3>
+      <div class="body">
+        <label class="f"><span>Auto-score by</span>
+          <select id="fAuto">
+            <option value="plausible">Plausible descending scores</option>
+            <option value="numbers">Biggest number in the model name</option>
+            <option value="namelen">Length of the model name</option>
+            <option value="alpha">Reverse alphabetical rank</option>
+            <option value="context">Real context window</option>
+            <option value="price">Real prompt price, per million</option>
+            <option value="vowels">Vowel count</option>
+            <option value="random">Pure noise</option>
+          </select>
+        </label>
+        <div class="row">
+          <button class="sm g" id="btnAuto">Apply to all</button>
+          <button class="sm g" id="btnBump">Make ours win</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="sm g" id="btnAdd">Blank row</button>
+          <button class="sm g" id="btnClear">Clear all</button>
+        </div>
+        <div style="height:15px"></div>
+        <div id="entries"></div>
+      </div>
+    </section>
+
+  </aside>
+
+  <div id="stage">
+    <div id="cardWrap"></div>
+    <p id="tapHint">Tap to inspect</p>
+  </div>
+</main>
+
+<div id="zoom" hidden>
+  <div class="zbar">
+    <div class="seg" id="segZoom">
+      <button data-v="full" class="on">1:1</button>
+      <button data-v="fit">Fit</button>
+    </div>
+    <span id="zNote">Drag to pan</span>
+    <button id="zClose">Done</button>
+  </div>
+  <div class="zscroll"><div id="zCard"></div></div>
+</div>
+
+<canvas id="cv" style="display:none"></canvas>
+<script>
+"use strict";
+
+/* ══════════════════════════════════════════════════════════════════
+   state
+   ══════════════════════════════════════════════════════════════════ */
+const S = {
+  eyebrow: "Announcements",
+  title: "VERBENCH",
+  subtitle: "Measuring frontier capability as the largest integer appearing in the model identifier.",
+  org: "Institute for Applied Numerology",
+  date: "September 2026",
+  footnote: "Scores are single-run and not corrected for anything. Error bars denote ± the standard error we would have computed had we run the evaluation more than once. Competitor numbers self-reported by us.",
+  metric: "Numerical supremacy",
+  xLabel: "Cost, USD per million input tokens",
+  yLabel: "Score (%)",
+  axes: "Reasoning, Vibes, Obedience, Girth, Tokens per Dollar, Aura",
+  steps: "1e21, 1e22, 1e23, 1e24, 1e25",
+  chart: "column",
+  accent: "#C4623F",
+  colorMode: "ramp",
+  axisMax: "", dec: 1, suffix: "",
+  zoom: true, sort: true, values: true, grid: true, err: false, rank: false,
+  hib: true, center: true, serif: false,
+  entries: []
+};
+
+/* card palette — one house style, the launch-post look */
+const C = {
+  card:  "#FBF9F6",
+  panel: "#F1EDE5",
+  ink:   "#191510",
+  ink2:  "#5F574E",
+  ink3:  "#948B7F",
+  grid:  "#E1D9CC",
+  rule:  "#E6DFD4",
+  axis:  "#2B251E"
+};
+const RAMP     = ["#E0913F","#E9C063","#CFC5B4","#BCB2A0","#A79C8A","#8F8472","#7C7263"];
+const GREYS    = ["#C6BDAF","#B6AC9D","#A79C8C","#988D7D","#8A7F6F","#7D7264"];
+const DISTINCT = ["#C4623F","#E0913F","#3F7A6B","#4A6C9B","#8A5B9E","#B0893A","#A8484E","#4F7A3F"];
+const CHIPS    = ["#C4623F","#E0913F","#3F7A6B","#4A6C9B","#8A5B9E","#232321"];
+
+/* ══════════════════════════════════════════════════════════════════
+   helpers
+   ══════════════════════════════════════════════════════════════════ */
+const $   = id => document.getElementById(id);
+const esc = t => String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                 .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const uid = () => Math.random().toString(36).slice(2,9);
+
+function hash(str){ let h=2166136261; const s=String(str);
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function rnd(seed){ const x=Math.sin(hash(seed)*12.9898)*43758.5453; return x-Math.floor(x); }
+const pick = (arr,seed) => arr[Math.floor(rnd(seed)*arr.length)%arr.length];
+
+function tw(text, size, family){
+  const f = family==="mono" ? 0.60 : family==="serif" ? 0.475 : 0.525;
+  return String(text).length * size * f;
+}
+function wrap(text, maxW, size, family, maxLines){
+  const words = String(text).split(/\s+/).filter(Boolean), out=[]; let cur="";
+  for(const w of words){
+    const t = cur ? cur+" "+w : w;
+    if(tw(t,size,family) > maxW && cur){ out.push(cur); cur=w; } else cur=t;
+  }
+  if(cur) out.push(cur);
+  if(maxLines && out.length > maxLines){
+    const keep = out.slice(0, maxLines);
+    keep[maxLines-1] = ellip(keep[maxLines-1] + " " + out.slice(maxLines).join(" "), maxW, size, family);
+    return keep;
+  }
+  return out.length ? out : [""];
+}
+function ellip(text, maxW, size, family){
+  let t = String(text);
+  if(tw(t,size,family) <= maxW) return t;
+  while(t.length>2 && tw(t+"…",size,family) > maxW) t=t.slice(0,-1);
+  return t.replace(/[\s,.-]+$/,"")+"…";
+}
+function fmt(v){
+  if(!isFinite(v)) return "—";
+  const d = +S.dec, a = Math.abs(v);
+  let str;
+  if(a >= 1e6 && d<=1) str = (v/1e6).toFixed(a>=1e7?0:1)+"M";
+  else if(a >= 1e4 && d<=1) str = (v/1e3).toFixed(0)+"k";
+  else str = v.toFixed(d);
+  return str + (S.suffix||"");
+}
+function fmtTick(v){
+  const a = Math.abs(v);
+  if(a >= 1e6) return (v/1e6).toFixed(a>=1e7?0:1)+"M"+(S.suffix||"");
+  if(a >= 1e4) return (v/1e3).toFixed(0)+"k"+(S.suffix||"");
+  if(a >= 10)  return v.toFixed(0)+(S.suffix||"");
+  if(a === 0)  return "0"+(S.suffix||"");
+  return v.toFixed(Math.min(1,+S.dec))+(S.suffix||"");
+}
+function niceMax(v){
+  if(v<=0) return 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(v))), n = v/mag;
+  const step = n<=1?1:n<=1.2?1.2:n<=1.5?1.5:n<=2?2:n<=2.5?2.5:n<=3?3:n<=4?4:n<=5?5:n<=6?6:n<=8?8:10;
+  return step*mag;
+}
+function niceRange(lo, hi, ticks){
+  ticks = ticks || 5;
+  if(!(isFinite(lo) && isFinite(hi))){ lo=0; hi=1; }
+  if(hi - lo < 1e-9) hi = lo + Math.max(1, Math.abs(lo)*0.2);
+  const nonNeg = lo >= 0;              // never invent a negative axis for positive data
+  const padv = (hi-lo)*0.14;
+  lo -= padv; hi += padv;
+  if(nonNeg) lo = Math.max(0, lo);
+  const raw = (hi-lo)/ticks;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw))), nn = raw/mag;
+  const step = (nn<=1?1:nn<=2?2:nn<=2.5?2.5:nn<=5?5:10)*mag;
+  let a = Math.floor(lo/step)*step, b = Math.ceil(hi/step)*step;
+  if(nonNeg) a = Math.max(0, a);
+  if(a > 0 && a < step*1.5) a = 0;
+  return {lo:a, hi:b, step, n: Math.max(2, Math.round((b-a)/step))};
+}
+function userMax(){ const v = parseFloat(S.axisMax); return (isFinite(v) && v>0) ? v : null; }
+function parseVals(str, n){
+  let a = String(str||"").split(/[,\s;]+/).filter(Boolean).map(Number).filter(x=>isFinite(x));
+  if(!a.length) a=[50];
+  while(a.length<n) a.push(a[a.length-1]);
+  return a.slice(0,n);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   entries
+   ══════════════════════════════════════════════════════════════════ */
+const GENERIC = new Set(["large","small","medium","mini","micro","pro","max","flash","lite","chat",
+  "base","instruct","nano","air","plus","turbo","ultra","sonic","preview","latest","thinking","fast"]);
+function niceLabel(m){
+  if(!m) return "New Model 1";
+  const full = String(m.name || m.id);
+  const i = full.indexOf(": ");
+  if(i < 0) return full;
+  const vendor = full.slice(0,i), bare = full.slice(i+2);
+  const words = (bare.match(/[A-Za-z]{2,}/g) || []).filter(w=>w.length>=3);
+  const distinct = words.filter(w=>!GENERIC.has(w.toLowerCase()));
+  const standsAlone = distinct.length >= 2 || (distinct.length === 1 && distinct[0].length >= 4);
+  return standsAlone ? bare : vendor + " " + bare;
+}
+function addEntry(m){
+  S.entries.push({
+    id: uid(), label: niceLabel(m), modelId: m ? m.id : "", meta: m || null,
+    score: 0, cost: 0, series: "", hl: S.entries.length === 0
+  });
+}
+function autoScore(mode){
+  S.entries.forEach(e=>{
+    const meta = e.meta || {}, name = e.modelId || e.label;
+    let v;
+    switch(mode){
+      case "numbers": v = Math.max(...(String(name).match(/\d+(?:\.\d+)?/g) || ["0"]).map(Number)); break;
+      case "namelen": v = e.label.replace(/\s/g,"").length; break;
+      case "alpha":   v = 100 - (e.label.toLowerCase().charCodeAt(0)-97)*3.7; break;
+      case "context": v = meta.context_length || 8192; break;
+      case "price":   v = (parseFloat((meta.pricing||{}).prompt)||0)*1e6; break;
+      case "vowels":  v = (e.label.match(/[aeiou]/gi)||[]).length; break;
+      case "random":  v = 12 + rnd(e.label+"r")*86; break;
+      default:        v = 0;
+    }
+    e.score = v;
+    e.cost = ((parseFloat((meta.pricing||{}).prompt)||0)*1e6) || +(0.4 + rnd(name+"c")*24).toFixed(2);
+  });
+  if(mode === "plausible"){
+    const top = 91 + rnd(S.title+"t")*8;
+    const order = S.entries.map((e,i)=>i);
+    order.sort((a,b)=> (S.entries[a].hl?-1:0) - (S.entries[b].hl?-1:0)
+                     || rnd(S.entries[a].label) - rnd(S.entries[b].label));
+    order.forEach((idx,rank)=>{
+      const drop = rank===0 ? 0 : rank*(1.6+rnd(S.entries[idx].label+"d")*2.8);
+      S.entries[idx].score = Math.max(4, top - drop);
+    });
+  }
+  const nAx = Math.max(3, S.axes.split(",").filter(s=>s.trim()).length, S.steps.split(",").length);
+  S.entries.forEach(e=>{
+    const base = clamp(e.score, 5, 100), arr = [];
+    for(let k=0;k<nAx;k++) arr.push(+clamp(base*(0.55+0.55*rnd(e.label+k)), 3, 100).toFixed(1));
+    e.series = arr.join(", ");
+  });
+}
+function orderedEntries(){
+  const a = S.entries.slice();
+  if(S.sort && (S.chart==="column" || S.chart==="bar")) a.sort((x,y)=> y.score - x.score);
+  return a;
+}
+/* rank 0 is the leader; the starred model always takes the accent */
+function paint(list){
+  let k = 0;
+  return list.map((e,i)=>{
+    if(e.hl) return S.accent;
+    if(S.colorMode === "all")  return DISTINCT[(i+1) % DISTINCT.length];
+    if(S.colorMode === "grey") return GREYS[k++ % GREYS.length];
+    return RAMP[Math.min(k++, RAMP.length-1)];
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   OpenRouter
+   ══════════════════════════════════════════════════════════════════ */
+let MODELS = [];
+const FALLBACK = [
+  {id:"openai/gpt-5.2",name:"OpenAI: GPT-5.2",context_length:400000,pricing:{prompt:"0.00000125"}},
+  {id:"anthropic/claude-opus-5",name:"Anthropic: Claude Opus 5",context_length:200000,pricing:{prompt:"0.000015"}},
+  {id:"anthropic/claude-sonnet-5",name:"Anthropic: Claude Sonnet 5",context_length:200000,pricing:{prompt:"0.000003"}},
+  {id:"google/gemini-3-pro",name:"Google: Gemini 3 Pro",context_length:1000000,pricing:{prompt:"0.00000125"}},
+  {id:"meta-llama/llama-4-405b-instruct",name:"Meta: Llama 4 405B Instruct",context_length:131072,pricing:{prompt:"0.0000009"}},
+  {id:"deepseek/deepseek-r2",name:"DeepSeek: R2",context_length:164000,pricing:{prompt:"0.00000055"}},
+  {id:"qwen/qwen3-max",name:"Qwen: Qwen3 Max",context_length:262144,pricing:{prompt:"0.0000012"}},
+  {id:"mistralai/mistral-large-2512",name:"Mistral: Large 2512",context_length:131072,pricing:{prompt:"0.000002"}},
+  {id:"x-ai/grok-5",name:"xAI: Grok 5",context_length:256000,pricing:{prompt:"0.000003"}},
+  {id:"moonshotai/kimi-k2.5",name:"MoonshotAI: Kimi K2.5",context_length:200000,pricing:{prompt:"0.0000006"}}
+];
+const norm    = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const compact = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g,"");
+function indexModel(m){
+  if(m._h === undefined){
+    const both = (m.id||"") + " " + (m.name||"");
+    m._h = norm(both); m._c = compact(both); m._n = norm(niceLabel(m));
+  }
+  return m;
+}
+function scoreModel(m, q){
+  indexModel(m);
+  const nq = norm(q), cq = compact(q);
+  let sc = 0;
+  if(m._n === nq) sc += 200;
+  if(cq.length > 1 && m._c.includes(cq)) sc += 100;
+  if(m._n.startsWith(nq)) sc += 60;
+  if(m._h.includes(nq)) sc += 30;
+  if(m._n.includes(nq)) sc += 15;
+  return sc;
+}
+function matches(m, q){
+  if(!q) return true;
+  indexModel(m);
+  const toks = norm(q).split(" ").filter(Boolean);
+  if(toks.every(t => m._h.includes(t))) return true;
+  const c = compact(q);
+  return c.length > 1 && m._c.includes(c);
+}
+function setStatus(msg, cls){ const el = $("status"); el.textContent = msg; el.className = cls || ""; }
+async function fetchModels(){
+  setStatus("fetching openrouter.ai/api/v1/models …");
+  try{
+    const r = await fetch("https://openrouter.ai/api/v1/models", {headers:{accept:"application/json"}});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    ingest(await r.json(), "live");
+  }catch(err){
+    MODELS = FALLBACK.slice();
+    setStatus("fetch blocked ("+err.message+") — "+MODELS.length+" bundled models", "err");
+    renderModels();
+  }
+}
+function ingest(j, how){
+  const arr = Array.isArray(j) ? j : (j && j.data) || [];
+  if(!arr.length) throw new Error("no models in payload");
+  MODELS = arr.filter(m => m && m.id);
+  MODELS.sort((a,b)=> String(a.name||a.id).localeCompare(String(b.name||b.id)));
+  setStatus(MODELS.length + " models loaded (" + how + ")", "ok");
+  renderModels();
+}
+function renderModels(){
+  const q = $("fSearch").value.trim();
+  const have = new Set(S.entries.map(e=>e.modelId).filter(Boolean));
+  const hits = MODELS.filter(m => matches(m, q));
+  if(q) hits.sort((a,b)=> scoreModel(b,q) - scoreModel(a,q) || a._n.length - b._n.length);
+  const shown = hits.slice(0, 80), box = $("mlist");
+  if(!shown.length){
+    box.innerHTML = '<div class="mrow" style="cursor:default;color:var(--ink3)">No matches</div>';
+    return;
+  }
+  box.innerHTML = shown.map(m=>{
+    const price = (parseFloat((m.pricing||{}).prompt)||0)*1e6;
+    return '<div class="mrow'+(have.has(m.id)?" added":"")+'" data-id="'+esc(m.id)+'">'
+      + '<span class="nm">'+esc(niceLabel(m))+'<em>'+esc(m.id)+'</em></span>'
+      + '<span class="pl">'+(price ? "$"+price.toFixed(2) : "free")+'</span></div>';
+  }).join("");
+  box.querySelectorAll(".mrow").forEach(el=>{
+    el.onclick = ()=>{
+      const m = MODELS.find(x => x.id === el.dataset.id);
+      if(!m || S.entries.some(e => e.modelId === m.id)) return;
+      addEntry(m);
+      autoScore($("fAuto").value);
+      syncAll();
+    };
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   contenders panel
+   ══════════════════════════════════════════════════════════════════ */
+const ICON = {
+  up:'<svg viewBox="0 0 11 11" fill="none"><path d="M5.5 9V2.4M2.4 5.2L5.5 2l3.1 3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  dn:'<svg viewBox="0 0 11 11" fill="none"><path d="M5.5 2v6.6M2.4 5.8L5.5 9l3.1-3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rm:'<svg viewBox="0 0 11 11" fill="none"><path d="M2.4 2.4l6.2 6.2M8.6 2.4L2.4 8.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  st:'<svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 .9l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9.1l-3.2 1.7.6-3.6L.8 4.7l3.6-.5z"/></svg>'
+};
+function renderEntries(){
+  const box = $("entries");
+  if(!S.entries.length){
+    box.innerHTML = '<div id="empty">No contenders yet.<br>Pick some models above.</div>';
+    return;
+  }
+  const ord = orderedEntries(), cols = paint(ord);
+  const colorFor = e => cols[ord.indexOf(e)] || "#ccc";
+  const multi = (S.chart === "line" || S.chart === "radar");
+  const n = S.entries.length;
+
+  box.innerHTML = S.entries.map((e,i)=>
+    '<div class="ent'+(e.hl?" hl":"")+'" data-i="'+i+'">'
+    + '<div class="top">'
+    +   '<span class="bead" style="background:'+colorFor(e)+'"></span>'
+    +   '<input type="text" data-f="label" value="'+esc(e.label)+'">'
+    +   '<button class="ico star'+(e.hl?" on":"")+'" data-act="hl" title="This one is ours">'+ICON.st+'</button>'
+    +   '<button class="ico" data-act="up" title="Move up"'+(i===0?" disabled":"")+'>'+ICON.up+'</button>'
+    +   '<button class="ico" data-act="dn" title="Move down"'+(i===n-1?" disabled":"")+'>'+ICON.dn+'</button>'
+    +   '<button class="ico" data-act="rm" title="Remove">'+ICON.rm+'</button>'
+    + '</div>'
+    + (multi
+      ? '<div class="nums wide"><div><span class="tiny">Series values</span>'
+        + '<input type="text" data-f="series" value="'+esc(e.series)+'"></div></div>'
+      : '<div class="nums">'
+        + '<div><span class="tiny">'+(S.chart==="scatter"?"Y — capability":"Score")+'</span>'
+        + '<input type="number" step="any" data-f="score" value="'+(+e.score||0)+'"></div>'
+        + '<div><span class="tiny">'+(S.chart==="scatter"?"X — cost":"Cost")+'</span>'
+        + '<input type="number" step="any" data-f="cost" value="'+(+e.cost||0)+'"></div>'
+        + '</div>')
+    + '</div>').join("");
+
+  box.querySelectorAll(".ent").forEach(el=>{
+    const i = +el.dataset.i;
+    el.querySelectorAll("input").forEach(inp=>{
+      inp.oninput = ()=>{
+        const f = inp.dataset.f;
+        S.entries[i][f] = (f==="score"||f==="cost") ? (parseFloat(inp.value)||0) : inp.value;
+        draw();
+      };
+    });
+    el.querySelectorAll("button").forEach(b=>{
+      b.onclick = ()=>{
+        const a = b.dataset.act;
+        if(a==="rm") S.entries.splice(i,1);
+        else if(a==="hl"){ const was = S.entries[i].hl; S.entries.forEach(x=>x.hl=false); S.entries[i].hl = !was; }
+        else if(a==="up" && i>0) S.entries.splice(i-1,0,S.entries.splice(i,1)[0]);
+        else if(a==="dn" && i<S.entries.length-1) S.entries.splice(i+1,0,S.entries.splice(i,1)[0]);
+        syncAll();
+      };
+    });
+  });
+}
+function syncAll(){ renderEntries(); renderModels(); draw(); }
+
+/* ══════════════════════════════════════════════════════════════════
+   the figure — pure SVG, so the PNG is exactly the preview
+   ══════════════════════════════════════════════════════════════════ */
+const W = 1200, PAD = 64;
+const SANS  = "-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif";
+const SERIF = "Georgia,'Iowan Old Style','Times New Roman',serif";
+const MONO  = "ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+
+function T(x,y,text,o){
+  o = o || {};
+  const a = ['x="'+(+x).toFixed(1)+'"','y="'+(+y).toFixed(1)+'"',
+    'font-family="'+(o.ff||SANS)+'"','font-size="'+(o.fs||14)+'"','fill="'+(o.fill||C.ink)+'"'];
+  if(o.w) a.push('font-weight="'+o.w+'"');
+  if(o.anchor) a.push('text-anchor="'+o.anchor+'"');
+  if(o.ls) a.push('letter-spacing="'+o.ls+'"');
+  if(o.style) a.push('font-style="'+o.style+'"');
+  return '<text '+a.join(" ")+'>'+esc(text)+'</text>';
+}
+const L = (x1,y1,x2,y2,c,w,dash) =>
+  '<line x1="'+(+x1).toFixed(1)+'" y1="'+(+y1).toFixed(1)+'" x2="'+(+x2).toFixed(1)+'" y2="'+(+y2).toFixed(1)+
+  '" stroke="'+(c||C.grid)+'" stroke-width="'+(w||1)+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+const R = (x,y,w,h,f,extra) =>
+  '<rect x="'+(+x).toFixed(1)+'" y="'+(+y).toFixed(1)+'" width="'+Math.max(0,w).toFixed(1)+
+  '" height="'+Math.max(0,h).toFixed(1)+'" fill="'+f+'"'+(extra||"")+'/>';
+const RR = (x,y,w,h,r,f,extra) =>
+  '<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" rx="'+r+'" fill="'+f+'"'+(extra||"")+'/>';
+/* the axis-break glyph: two slashes cutting the axis where zero should be */
+function vBreak(x, y){
+  return R(x-6, y-8, 12, 16, C.panel)
+    + L(x-6.5, y+3.5, x+6.5, y-2.5, C.axis, 1.3)
+    + L(x-6.5, y+8,   x+6.5, y+2,   C.axis, 1.3);
+}
+function hBreak(x, y){
+  return R(x-8, y-6, 16, 12, C.panel)
+    + L(x-3.5, y-6.5, x+2.5, y+6.5, C.axis, 1.3)
+    + L(x+2,   y-6.5, x+8,   y+6.5, C.axis, 1.3);
+}
+const TITLE_FF = () => S.serif ? SERIF : SANS;
+
+/* ---------- header ---------- */
+function header(){
+  let g = "", y = 62;
+  const cx = S.center ? W/2 : PAD;
+  const an = S.center ? "middle" : "start";
+  const maxW = W - 2*PAD - (S.center ? 120 : 40);
+
+  if(S.eyebrow.trim()){
+    g += T(cx, y, S.eyebrow, {fs:12, fill:S.accent, w:650, ls:0.9, anchor:an});
+    y += 40;
+  } else y += 8;
+
+  const fs = S.title.length > 34 ? 34 : 42;
+  const tl = wrap(S.title, maxW, fs, S.serif?"serif":"sans", 2);
+  tl.forEach((ln,i)=> g += T(cx, y + i*(fs+6), ln,
+    {ff:TITLE_FF(), fs, w:700, ls:-0.6, anchor:an}));
+  y += (tl.length-1)*(fs+6) + 30;
+
+  if(S.subtitle.trim()){
+    const sl = wrap(S.subtitle, maxW, 15.5, "sans", 2);
+    sl.forEach((ln,i)=> g += T(cx, y + i*22, ln, {fs:15.5, fill:C.ink2, anchor:an}));
+    y += (sl.length-1)*22 + 12;
+  }
+  return {g, y: y + 26};
+}
+
+/* ---------- footer ---------- */
+function footer(y){
+  let g = "", yy = y + 26;
+  if(S.footnote.trim()){
+    const lines = wrap(S.footnote, W - 2*PAD, 11.5, "sans", 3);
+    lines.forEach((ln,i)=> g += T(PAD, yy + i*16, (i?"":"† ") + ln, {fs:11.5, fill:C.ink3}));
+    yy += (lines.length-1)*16 + 30;
+  }
+  g += L(PAD, yy - 14, W - PAD, yy - 14, C.rule, 1);
+  g += T(PAD, yy + 6, S.org, {fs:11.5, fill:C.ink2, w:650});
+  g += T(W - PAD, yy + 6, S.date, {ff:MONO, fs:11, fill:C.ink3, anchor:"end"});
+  return {g, y: yy + 30};
+}
+
+/* ---------- panel scaffolding shared by every chart ---------- */
+function panelTop(pt, note){
+  let g = T(W/2, pt + 40, S.metric, {fs:17.5, w:650, anchor:"middle"});
+  if(S.hib && note) g += T(W - PAD - 26, pt + 40, note, {fs:11, fill:C.ink3, style:"italic", anchor:"end"});
+  return g;
+}
+function yAxisLabel(x, y0, y1){
+  if(!S.yLabel.trim()) return "";
+  return '<g transform="translate('+(x)+','+((y0+y1)/2)+') rotate(-90)">'
+    + T(0, 0, S.yLabel.toUpperCase(), {fs:10.5, fill:C.ink3, w:650, ls:1.3, anchor:"middle"}) + '</g>';
+}
+
+/* ---------- columns — the launch-post default ---------- */
+function chartColumn(pt){
+  const list = orderedEntries(), n = list.length || 1, cols = paint(list);
+  const um = userMax();
+  const hi0 = Math.max(...list.map(e=>+e.score||0), 1);
+  const lo0 = Math.min(...list.map(e=>+e.score||0), hi0);
+  const ry = um ? {lo:0, hi:um, step:um/5, n:5}
+          : S.zoom ? niceRange(lo0, hi0, 5)
+          : (()=>{ const m = niceMax(hi0*1.06); return {lo:0, hi:m, step:m/5, n:5}; })();
+  const broken = ry.lo > 0;
+
+  const x0 = PAD + 98, x1 = W - PAD - 46;
+  const y0 = pt + 92, y1 = y0 + 318;
+  const py = v => y1 - (y1-y0) * clamp((v - ry.lo)/(ry.hi - ry.lo), 0, 1);
+
+  let g = panelTop(pt, "higher is better");
+
+  if(S.grid) for(let t=0;t<=ry.n;t++){
+    const y = y1 - (y1-y0)*t/ry.n;
+    g += L(x0, y, x1, y, t===0 ? C.grid : C.grid, t===0?1.1:1);
+  }
+
+  const groupW = (x1-x0)/n;
+  const barW = Math.min(96, groupW*0.54);
+  const labelLines = [];
+
+  list.forEach((e,i)=>{
+    const cx = x0 + groupW*(i+0.5);
+    const v = +e.score || 0;
+    const top = py(v);
+    const col = cols[i];
+    g += R(cx - barW/2, top, barW, y1 - top, col);
+    if(S.err && Math.abs(v) > 0){
+      const se = (ry.hi - ry.lo) * (0.012 + rnd(e.label+"e")*0.03);
+      const hiY = py(v + se), loY = Math.min(y1, py(v - se));
+      g += L(cx, hiY, cx, loY, C.axis, 1.2);
+      g += L(cx-6, hiY, cx+6, hiY, C.axis, 1.2);
+      g += L(cx-6, loY, cx+6, loY, C.axis, 1.2);
+    }
+    if(S.values){
+      const se = S.err ? (ry.hi-ry.lo)*(0.012 + rnd(e.label+"e")*0.03) : 0;
+      g += T(cx, py(v + se) - 12, fmt(v),
+        {fs: e.hl?16:15, w:700, anchor:"middle", fill: e.hl ? S.accent : C.ink});
+    }
+    const nm = (S.rank ? (i+1)+". " : "") + e.label;
+    labelLines.push({cx, lines: wrap(nm, groupW - 8, 12.5, "sans", 2), hl: e.hl});
+  });
+
+  g += L(x0, y0, x0, y1, C.axis, 1.2);
+  g += L(x0, y1, x1, y1, C.axis, 1.2);
+  for(let t=0;t<=ry.n;t++){
+    const y = y1 - (y1-y0)*t/ry.n;
+    g += L(x0-5, y, x0, y, C.axis, 1);
+    g += T(x0-11, y+3.8, fmtTick(ry.lo + ry.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"});
+  }
+  let nameY = y1 + 26;
+  if(broken){
+    g += L(x0, y1, x0, y1 + 22, C.axis, 1.2);
+    g += vBreak(x0, y1 + 10);
+    g += T(x0-11, y1 + 26, "0", {ff:MONO, fs:11, fill:C.ink3, anchor:"end"});
+    nameY = y1 + 44;
+  }
+  g += yAxisLabel(x0 - 62, y0, y1);
+  let maxLines = 1;
+  labelLines.forEach(l=>{
+    maxLines = Math.max(maxLines, l.lines.length);
+    l.lines.forEach((ln,k)=> g += T(l.cx, nameY + k*16, ln,
+      {fs:12.5, w: l.hl?700:500, fill: l.hl?C.ink:C.ink2, anchor:"middle"}));
+  });
+  return {g, h: (nameY + maxLines*16 + 10) - pt};
+}
+
+/* ---------- horizontal bars ---------- */
+function chartBar(pt){
+  const list = orderedEntries(), n = list.length || 1, cols = paint(list);
+  const um = userMax();
+  const hi0 = Math.max(...list.map(e=>+e.score||0), 1);
+  const lo0 = Math.min(...list.map(e=>+e.score||0), hi0);
+  const rx = um ? {lo:0, hi:um, step:um/5, n:5}
+          : S.zoom ? niceRange(lo0, hi0, 5)
+          : (()=>{ const m = niceMax(hi0*1.04); return {lo:0, hi:m, step:m/5, n:5}; })();
+  const broken = rx.lo > 0;
+
+  const labelW = 250;
+  const x0 = PAD + 34 + labelW, x1 = W - PAD - 120;
+  const rowH = n<=4 ? 58 : n<=7 ? 46 : n<=11 ? 38 : 31;
+  const barH = Math.min(30, rowH - 14);
+  const y0 = pt + 84;
+  const px = v => x0 + (x1-x0) * clamp((v - rx.lo)/(rx.hi - rx.lo), 0, 1);
+
+  let g = panelTop(pt, "higher is better");
+  if(S.grid) for(let t=0;t<=rx.n;t++){
+    const x = x0 + (x1-x0)*t/rx.n;
+    g += L(x, y0 - 6, x, y0 + n*rowH + 4, C.grid, 1);
+  }
+  list.forEach((e,i)=>{
+    const cy = y0 + i*rowH + rowH/2, v = +e.score||0, col = cols[i];
+    g += T(x0 - 16, cy + 4.6, ellip((S.rank?(i+1)+". ":"") + e.label, labelW, e.hl?14:13.5, "sans"),
+      {fs: e.hl?14:13.5, w: e.hl?700:500, fill: e.hl?C.ink:C.ink2, anchor:"end"});
+    g += R(x0, cy - barH/2, px(v) - x0, barH, col);
+    let ex = 0;
+    if(S.err && Math.abs(v) > 0){
+      const se = (rx.hi - rx.lo)*(0.012 + rnd(e.label+"e")*0.03);
+      ex = px(v + se) - px(v);
+      const bx = px(v), lo = Math.max(x0, bx - ex);
+      g += L(lo, cy, bx + ex, cy, C.axis, 1.2);
+      g += L(lo, cy-5.5, lo, cy+5.5, C.axis, 1.2);
+      g += L(bx+ex, cy-5.5, bx+ex, cy+5.5, C.axis, 1.2);
+    }
+    if(S.values) g += T(px(v) + ex + 12, cy + 4.8, fmt(v),
+      {ff:MONO, fs: e.hl?13.5:12.5, w: e.hl?700:500, fill: e.hl?S.accent:C.ink2});
+  });
+  const ay = y0 + n*rowH + 4;
+  g += L(x0, y0 - 6, x0, ay, C.axis, 1.2);
+  g += L(x0, ay, x1, ay, C.axis, 1.2);
+  for(let t=0;t<=rx.n;t++){
+    const x = x0 + (x1-x0)*t/rx.n;
+    g += L(x, ay, x, ay+5, C.axis, 1);
+    g += T(x, ay+21, fmtTick(rx.lo + rx.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"});
+  }
+  if(broken){
+    g += L(x0 - 26, ay, x0, ay, C.axis, 1.2);
+    g += hBreak(x0 - 13, ay);
+    g += T(x0 - 26, ay + 21, "0", {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"});
+  }
+  if(S.yLabel.trim()) g += T((x0+x1)/2, ay + 44, S.yLabel.toUpperCase(),
+    {fs:10.5, fill:C.ink3, w:650, ls:1.3, anchor:"middle"});
+  return {g, h: (ay + (S.yLabel.trim()?52:30)) - pt};
+}
+
+/* ---------- scatter ---------- */
+function chartScatter(pt){
+  const list = S.entries.slice(), n = list.length || 1, cols = paint(list);
+  const x0 = PAD + 98, x1 = W - PAD - 46;
+  const y0 = pt + 92, y1 = y0 + 336;
+  const xs = list.map(e=>+e.cost||0), ys = list.map(e=>+e.score||0);
+  const rx = niceRange(Math.min(...xs, 0), Math.max(...xs, 0.01), 5);
+  const um = userMax();
+  const ry = um ? {lo:0, hi:um, step:um/4, n:4}
+                : niceRange(Math.min(...ys), Math.max(...ys), 4);
+  const px = v => x0 + (x1-x0)*clamp((v-rx.lo)/(rx.hi-rx.lo),0,1);
+  const py = v => y1 - (y1-y0)*clamp((v-ry.lo)/(ry.hi-ry.lo),0,1);
+
+  let g = panelTop(pt, "up and to the left is better");
+  if(S.grid){
+    for(let t=0;t<=rx.n;t++){ const x = px(rx.lo+rx.step*t); g += L(x, y0, x, y1, C.grid, 1); }
+    for(let t=0;t<=ry.n;t++){ const y = py(ry.lo+ry.step*t); g += L(x0, y, x1, y, C.grid, 1); }
+  }
+  g += L(x0, y0, x0, y1, C.axis, 1.2) + L(x0, y1, x1, y1, C.axis, 1.2);
+  for(let t=0;t<=rx.n;t++){ const v = rx.lo+rx.step*t, x = px(v);
+    g += L(x, y1, x, y1+5, C.axis, 1);
+    g += T(x, y1+21, "$"+v.toFixed(rx.step<1?2:rx.step<10?1:0), {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"}); }
+  for(let t=0;t<=ry.n;t++){ const v = ry.lo+ry.step*t, y = py(v);
+    g += L(x0-5, y, x0, y, C.axis, 1);
+    g += T(x0-11, y+3.8, fmtTick(v), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
+  g += T((x0+x1)/2, y1+46, S.xLabel, {fs:12.5, fill:C.ink2, w:600, anchor:"middle"});
+  g += yAxisLabel(x0 - 62, y0, y1);
+
+  const pts = list.map((e,i)=>({e, x:px(+e.cost||0), y:py(+e.score||0), col:cols[i]}));
+  pts.forEach(p=>{
+    const r = p.e.hl ? 10 : 7;
+    g += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r+'" fill="'+p.col+
+         '" stroke="'+C.panel+'" stroke-width="2"/>';
+    if(p.e.hl) g += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(r+7)+
+         '" fill="none" stroke="'+S.accent+'" stroke-width="1" stroke-dasharray="3 3"/>';
+  });
+  const laneL = [], laneR = [];
+  pts.slice().sort((a,b)=>a.y-b.y).forEach(p=>{
+    const lab = p.e.label + (S.values ? "  " + fmt(+p.e.score||0) : "");
+    const fs = p.e.hl ? 13 : 12;
+    const right = p.x + 24 + tw(lab, fs, "sans") < x1;
+    const lane = right ? laneR : laneL;
+    let ly = p.y + 4.5;
+    for(let k=0;k<40;k++){ const hit = lane.find(v=>Math.abs(v-ly)<15); if(hit===undefined) break; ly = hit + 15.5; }
+    ly = clamp(ly, y0+8, y1+2); lane.push(ly);
+    const lx = right ? p.x + (p.e.hl?25:14) : p.x - (p.e.hl?25:14);
+    if(Math.abs(ly - (p.y+4.5)) > 6)
+      g += L(right ? p.x+(p.e.hl?12:9) : p.x-(p.e.hl?12:9), p.y, right ? lx-3 : lx+3, ly-4, "#CFC6B8", 1);
+    g += T(lx, ly, lab, {fs, w: p.e.hl?700:500, fill: p.e.hl?C.ink:C.ink2, anchor: right?"start":"end"});
+  });
+  return {g, h: (y1 + 62) - pt};
+}
+
+/* ---------- legend ---------- */
+function legend(y, list, cols){
+  let g = "";
+  const per = list.length > 4 ? 3 : list.length;
+  const colW = (W - 2*PAD - 60) / per;
+  const rows = Math.ceil(list.length / per);
+  list.forEach((e,i)=>{
+    const c = i % per, r = Math.floor(i/per);
+    const x = PAD + 30 + c*colW, yy = y + r*23;
+    g += R(x, yy-8, 20, 3.5, cols[i]);
+    g += '<circle cx="'+(x+10)+'" cy="'+(yy-6.25)+'" r="'+(e.hl?4:3)+'" fill="'+cols[i]+
+         '" stroke="'+C.panel+'" stroke-width="1.2"/>';
+    g += T(x+28, yy, ellip(e.label, colW-44, 12, "sans"),
+      {fs:12, w: e.hl?700:500, fill: e.hl?C.ink:C.ink2});
+  });
+  return {g, h: rows*23 + 10};
+}
+
+/* ---------- line ---------- */
+function chartLine(pt){
+  const list = S.entries.slice(), n = list.length || 1, cols = paint(list);
+  const steps = S.steps.split(",").map(s=>s.trim()).filter(Boolean);
+  const ns = Math.max(2, steps.length);
+  const x0 = PAD + 98, x1 = W - PAD - 56;
+  const y0 = pt + 92, y1 = y0 + 322;
+  const all = list.flatMap(e=>parseVals(e.series, ns));
+  const um = userMax();
+  const ry = um ? {lo:0, hi:um, step:um/4, n:4} : niceRange(Math.min(...all,0), Math.max(...all,1), 4);
+  const px = i => x0 + (x1-x0)*(ns===1?0.5:i/(ns-1));
+  const py = v => y1 - (y1-y0)*clamp((v-ry.lo)/(ry.hi-ry.lo),0,1);
+
+  let g = panelTop(pt, "higher is better");
+  if(S.grid){
+    for(let i=0;i<ns;i++) g += L(px(i), y0, px(i), y1, C.grid, 1);
+    for(let t=0;t<=ry.n;t++){ const y = py(ry.lo+ry.step*t); g += L(x0, y, x1, y, C.grid, 1); }
+  }
+  g += L(x0, y0, x0, y1, C.axis, 1.2) + L(x0, y1, x1, y1, C.axis, 1.2);
+  for(let t=0;t<=ry.n;t++){ const y = py(ry.lo+ry.step*t);
+    g += L(x0-5, y, x0, y, C.axis, 1);
+    g += T(x0-11, y+3.8, fmtTick(ry.lo+ry.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
+  for(let i=0;i<ns;i++){ g += L(px(i), y1, px(i), y1+5, C.axis, 1);
+    g += T(px(i), y1+21, steps[i]||"", {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"}); }
+  g += T((x0+x1)/2, y1+46, S.xLabel, {fs:12.5, fill:C.ink2, w:600, anchor:"middle"});
+  g += yAxisLabel(x0 - 62, y0, y1);
+
+  list.forEach((e,i)=>{
+    const v = parseVals(e.series, ns), col = cols[i];
+    const d = v.map((val,k)=> (k?"L":"M") + px(k).toFixed(1) + " " + py(val).toFixed(1)).join(" ");
+    const dash = e.hl ? "" : (i%3===2 ? ' stroke-dasharray="6 4"' : i%3===1 ? ' stroke-dasharray="2 3"' : "");
+    g += '<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+(e.hl?3.2:2)+
+         '" stroke-linejoin="round" stroke-linecap="round"'+dash+'/>';
+    v.forEach((val,k)=> g += '<circle cx="'+px(k).toFixed(1)+'" cy="'+py(val).toFixed(1)+'" r="'+(e.hl?4.6:3.4)+
+      '" fill="'+col+'" stroke="'+C.panel+'" stroke-width="1.4"/>');
+    if(S.values) g += T(px(ns-1)+11, py(v[v.length-1])+4, fmt(v[v.length-1]),
+      {ff:MONO, fs:11, w:700, fill:col});
+  });
+  const lg = legend(y1 + 70, list, cols);
+  return {g: g + lg.g, h: (y1 + 70 + lg.h) - pt};
+}
+
+/* ---------- radar ---------- */
+function chartRadar(pt){
+  const list = S.entries.slice(), n = list.length || 1, cols = paint(list);
+  const axes = S.axes.split(",").map(s=>s.trim()).filter(Boolean);
+  const na = Math.max(3, axes.length);
+  const cx = W/2, R0 = 176, cy = pt + R0 + 116;
+  const um = userMax();
+  const maxY = um || niceMax(Math.max(1, ...list.flatMap(e=>parseVals(e.series,na)))*1.02);
+  const ang = k => (-Math.PI/2) + k*2*Math.PI/na;
+  const ptAt = (k,v) => [cx + Math.cos(ang(k))*R0*clamp(v/maxY,0,1),
+                         cy + Math.sin(ang(k))*R0*clamp(v/maxY,0,1)];
+
+  let g = panelTop(pt, "");
+  const rings = 4;
+  for(let r=1;r<=rings;r++){
+    const p = [];
+    for(let k=0;k<na;k++){ const q = ptAt(k, maxY*r/rings); p.push(q[0].toFixed(1)+","+q[1].toFixed(1)); }
+    g += '<polygon points="'+p.join(" ")+'" fill="'+(r===rings?"#F7F4EE":"none")+
+         '" stroke="'+C.grid+'" stroke-width="1"/>';
+  }
+  for(let k=0;k<na;k++){
+    const q = ptAt(k, maxY);
+    g += L(cx, cy, q[0], q[1], C.grid, 1);
+    const lx = cx + Math.cos(ang(k))*(R0+28), ly = cy + Math.sin(ang(k))*(R0+28);
+    const a = Math.cos(ang(k));
+    g += T(lx, ly+4, (axes[k]||("Axis "+(k+1))).toUpperCase(),
+      {fs:10.5, fill:C.ink2, w:650, ls:1.2, anchor: Math.abs(a)<0.25 ? "middle" : a>0 ? "start" : "end"});
+  }
+  if(S.grid) for(let r=1;r<=rings;r++)
+    g += T(cx+5, cy - R0*r/rings + 4, fmtTick(maxY*r/rings), {ff:MONO, fs:9.5, fill:"#B3AA9C"});
+
+  list.forEach((e,i)=>{
+    const v = parseVals(e.series, na), col = cols[i];
+    const p = v.map((val,k)=>{ const q = ptAt(k,val); return q[0].toFixed(1)+","+q[1].toFixed(1); });
+    const fo = e.hl ? 0.2 : (list.length > 3 ? 0 : 0.08);
+    const dash = e.hl ? "" : (i%3===2 ? ' stroke-dasharray="6 4"' : i%3===1 ? ' stroke-dasharray="2 3"' : "");
+    g += '<polygon points="'+p.join(" ")+'" fill="'+col+'" fill-opacity="'+fo+
+         '" stroke="'+col+'" stroke-width="'+(e.hl?2.9:1.8)+'" stroke-linejoin="round"'+dash+'/>';
+    if(e.hl) v.forEach((val,k)=>{ const q = ptAt(k,val);
+      g += '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4.2" fill="'+col+
+           '" stroke="'+C.panel+'" stroke-width="1.4"/>'; });
+  });
+  const lg = legend(cy + R0 + 66, list, cols);
+  return {g: g + lg.g, h: (cy + R0 + 66 + lg.h) - pt};
+}
+
+/* ---------- assemble ---------- */
+function buildSVG(){
+  const h = header();
+  const pt = h.y;
+  const fn = {column:chartColumn, bar:chartBar, scatter:chartScatter, line:chartLine, radar:chartRadar}[S.chart]
+           || chartColumn;
+  const chart = fn(pt);
+  const f = footer(pt + chart.h);
+  const H = Math.round(f.y + 14);
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'
+    + R(0, 0, W, H, C.card)
+    + RR(PAD, pt, W - 2*PAD, chart.h - 8, 16, C.panel)
+    + h.g + chart.g + f.g
+    + '</svg>';
+}
+let lastSVG = "";
+function draw(){
+  lastSVG = buildSVG();
+  $("cardWrap").innerHTML = lastSVG;
+  if(!$("zoom").hidden) $("zCard").innerHTML = lastSVG;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   export
+   ══════════════════════════════════════════════════════════════════ */
+function download(blob, name){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+const slug = () => (S.title||"benchmark").toLowerCase().replace(/[^a-z0-9]+/g,"-")
+  .replace(/^-|-$/g,"") || "benchmark";
+function exportSVG(){ download(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}), slug()+".svg"); }
+function exportPNG(){
+  const m = lastSVG.match(/width="(\d+)" height="(\d+)"/);
+  const w = +m[1], h = +m[2], k = 2;
+  const btn = $("btnPng"), was = btn.innerHTML;
+  btn.innerHTML = "Rendering…";
+  const url = URL.createObjectURL(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}));
+  const img = new Image();
+  img.onload = ()=>{
+    const cv = $("cv"); cv.width = w*k; cv.height = h*k;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = C.card; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    cv.toBlob(b=>{ download(b, slug()+"@2x.png"); btn.innerHTML = was; }, "image/png");
+    URL.revokeObjectURL(url);
+  };
+  img.onerror = ()=>{ btn.innerHTML = was; URL.revokeObjectURL(url);
+    alert("Could not rasterize this figure. Use the SVG button instead."); };
+  img.src = url;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   nonsense generators
+   ══════════════════════════════════════════════════════════════════ */
+const NAME_A = ["VER","NUM","GIRTH","SLOP","AURA","GOON","YAP","MOG","RIZZ","BLOAT","VIBE","COPE","HUZZ","LORE","DOOM","ZOOM","SIGMA"];
+const NAME_B = ["BENCH","BENCH","EVAL","QA","-Bench","Arena","Hard","Pro","Suite","Prime","2","X","-R"];
+const SUBS = [
+  "Measuring frontier capability as the largest integer appearing in the model identifier.",
+  "Single-turn evaluation over four hand-written prompts. Temperature 1.0. The judge was me.",
+  "Zero-shot, no chain of thought, no tools, no methodology, no ethics board.",
+  "Aggregate of six sub-tasks we invented last night. Weights chosen to produce this ordering.",
+  "Held-out test set, held out so firmly that nobody has ever seen it.",
+  "Elo computed from eleven pairwise votes, nine of them cast by the first author.",
+  "Best-of-64 for our model, greedy decoding for everyone else. The comparison is fair.",
+  "All numbers are pass@1 except where a higher number was available."
+];
+const FOOTS = [
+  "Scores are single-run and not corrected for anything. Error bars denote ± the standard error we would have computed had we run the evaluation more than once. Competitor numbers self-reported by us.",
+  "Baselines evaluated under conditions we did not investigate. Our model was evaluated after extensive prompt engineering; baselines were not, in the interest of time. Significance was not tested and would not have helped.",
+  "We exclude 41% of the test set where our model performed poorly, following standard practice. Contamination analysis is left to future work. Code available on request, which will be denied.",
+  "Evaluation harness written the morning of the announcement. Three prompts crashed and were scored as correct. The remaining prompts were also scored as correct.",
+  "Differences of less than fourteen points are within noise and should not be over-interpreted, except where they favour us."
+];
+const ORGS = ["Institute for Applied Numerology","Center for Vibe Alignment","Frontier Slop Laboratory",
+  "Department of Big Number Studies","Anonymous Authors, under review","The Bench Foundation"];
+const HEADS = ["Numerical supremacy","Software engineering","Agentic capability","Raw intelligence",
+  "Reasoning under duress","General helpfulness","Girth"];
+const YLABS = ["Score (%)","Accuracy (%)","Pass rate (%)","Elo","Capability index","Girth (%)"];
+const AXES = [
+  "Reasoning, Vibes, Obedience, Girth, Tokens per Dollar, Aura",
+  "Maths, Code, Yapping, Refusals, Em-dashes, Confidence",
+  "Recall, Sycophancy, Brevity, Lore, Latency, Taste",
+  "Helpfulness, Harmlessness, Honesty, Hustle, Heart, Hubris"
+];
+function randomName(){
+  const s = Date.now() + Math.random();
+  S.title    = pick(NAME_A, s+"a") + pick(NAME_B, s+"b");
+  S.subtitle = pick(SUBS, s+"s");
+  S.metric   = pick(HEADS, s+"h");
+  S.yLabel   = pick(YLABS, s+"y");
+  S.org      = pick(ORGS, s+"o");
+  S.axes     = pick(AXES, s+"x");
+  pushToInputs(); draw();
+}
+function randomFoot(){ S.footnote = pick(FOOTS, Date.now()+Math.random()); pushToInputs(); draw(); }
+
+function loadPreset(){
+  S.entries = [];
+  const pool = MODELS.length ? MODELS : FALLBACK;
+  // numbers in the same ballpark, so the joke lands without one bar dwarfing the rest
+  const wants = ["openai/gpt-5.2","anthropic/claude-opus-5","x-ai/grok-4.6","moonshotai/kimi-k2.5",
+                 "google/gemini-3-pro","deepseek/deepseek-r2"];
+  wants.forEach(id=>{
+    const m = pool.find(x=>x.id===id) || FALLBACK.find(x=>x.id===id);
+    if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m);
+  });
+  while(S.entries.length < 5 && pool.length){
+    const m = pool[Math.floor(rnd(S.entries.length+"p")*pool.length)];
+    if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m); else break;
+  }
+  Object.assign(S, {
+    eyebrow:"Announcements", title:"VERBENCH", subtitle:SUBS[0],
+    metric:"Numerical supremacy", yLabel:"Largest integer in identifier",
+    footnote:FOOTS[0], org:ORGS[0], chart:"column",
+    rank:false, err:true, zoom:false, dec:1, suffix:"", center:true, serif:false, colorMode:"ramp"
+  });
+  $("fAuto").value = "numbers";
+  autoScore("numbers");
+  let best = 0;
+  S.entries.forEach((e,i)=>{ if(e.score > S.entries[best].score) best = i; });
+  S.entries.forEach(e=>e.hl=false);
+  S.entries[best].hl = true;
+  pushToInputs(); syncChartUI(); syncAll();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   wiring
+   ══════════════════════════════════════════════════════════════════ */
+const TEXT_FIELDS = {
+  fEyebrow:"eyebrow", fTitle:"title", fSubtitle:"subtitle", fOrg:"org", fDate:"date",
+  fFootnote:"footnote", fMetric:"metric", fXLabel:"xLabel", fYLabel:"yLabel",
+  fAxes:"axes", fSteps:"steps", fMax:"axisMax", fSuffix:"suffix"
+};
+const CHECKS = {
+  cZoom:"zoom", cSort:"sort", cValues:"values", cGrid:"grid", cErr:"err",
+  cRank:"rank", cHib:"hib", cCenter:"center", cSerif:"serif"
+};
+function pushToInputs(){
+  for(const [id,k] of Object.entries(TEXT_FIELDS)) $(id).value = S[k];
+  for(const [id,k] of Object.entries(CHECKS)) $(id).checked = !!S[k];
+  $("fAccent").value = S.accent;
+  $("fAccentHex").value = S.accent;
+  $("fDec").value = String(S.dec);
+  document.querySelectorAll("#segColor button").forEach(b=> b.classList.toggle("on", b.dataset.v===S.colorMode));
+  document.querySelectorAll("#chips .chip").forEach(b=>
+    b.classList.toggle("on", b.dataset.v.toLowerCase()===S.accent.toLowerCase()));
+}
+function syncChartUI(){
+  document.querySelectorAll("#segChart button").forEach(b=> b.classList.toggle("on", b.dataset.v===S.chart));
+  const isCol = S.chart==="column", isBar = S.chart==="bar", isXY = S.chart==="scatter"||S.chart==="line";
+  const show = (el,on) => $(el).style.display = on ? "" : "none";
+  show("axisBox", isXY || isCol || isBar);
+  show("xLabelBox", isXY);
+  show("yLabelBox", isXY || isCol || isBar);
+  $("axisBox").style.gridTemplateColumns = isXY ? "1fr 1fr" : "1fr";
+  show("axesBox", S.chart==="radar");
+  show("stepsBox", S.chart==="line");
+  show("swZoom", isCol || isBar);
+  show("swSort", isCol || isBar);
+  show("swErr",  isCol || isBar);
+  show("swRank", isCol || isBar);
+}
+for(const [id,k] of Object.entries(TEXT_FIELDS))
+  $(id).addEventListener("input", e=>{ S[k] = e.target.value; draw(); });
+for(const [id,k] of Object.entries(CHECKS))
+  $(id).addEventListener("change", e=>{ S[k] = e.target.checked; draw(); });
+$("fDec").addEventListener("change", e=>{ S.dec = +e.target.value; draw(); });
+function setAccent(v){
+  S.accent = v; $("fAccent").value = v; $("fAccentHex").value = v;
+  document.querySelectorAll("#chips .chip").forEach(b=>
+    b.classList.toggle("on", b.dataset.v.toLowerCase()===v.toLowerCase()));
+  syncAll();
+}
+$("fAccent").addEventListener("input", e=> setAccent(e.target.value));
+$("fAccentHex").addEventListener("input", e=>{
+  const v = e.target.value.trim();
+  if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) setAccent(v);
+});
+$("chips").innerHTML = CHIPS.map(c=>
+  '<button class="chip" data-v="'+c+'" style="background:'+c+'" title="'+c+'"></button>').join("");
+$("chips").querySelectorAll(".chip").forEach(b=> b.onclick = ()=> setAccent(b.dataset.v));
+document.querySelectorAll("#segChart button").forEach(b=>
+  b.onclick = ()=>{ S.chart = b.dataset.v; syncChartUI(); syncAll(); });
+document.querySelectorAll("#segColor button").forEach(b=>
+  b.onclick = ()=>{ S.colorMode = b.dataset.v;
+    document.querySelectorAll("#segColor button").forEach(x=>x.classList.toggle("on", x===b));
+    syncAll(); });
+document.querySelectorAll(".sec > h3").forEach(h=>
+  h.onclick = ()=> h.parentElement.classList.toggle("collapsed"));
+$("fSearch").addEventListener("input", renderModels);
+$("btnFetch").onclick = fetchModels;
+$("btnPaste").onclick = ()=>{
+  try{ ingest(JSON.parse($("fPaste").value), "pasted"); }
+  catch(err){ setStatus("could not parse that JSON: " + err.message, "err"); }
+};
+$("btnAuto").onclick = ()=>{ autoScore($("fAuto").value); syncAll(); };
+$("btnBump").onclick = ()=>{
+  const top = Math.max(...S.entries.map(e=>+e.score||0));
+  S.entries.forEach(e=>{ if(e.hl) e.score = +(top*(1.04 + rnd(e.label)*0.1)).toFixed(2); });
+  syncAll();
+};
+$("btnClear").onclick = ()=>{ S.entries = []; syncAll(); };
+$("btnAdd").onclick   = ()=>{
+  addEntry(null);
+  S.entries[S.entries.length-1].label = "Our Model (ours)";
+  syncAll();
+};
+$("btnName").onclick   = randomName;
+$("btnFoot").onclick   = randomFoot;
+$("btnPreset").onclick = loadPreset;
+$("btnPng").onclick    = exportPNG;
+$("btnSvg").onclick    = exportSVG;
+
+/* ── tap-to-inspect: the phone preview is too small to read ────── */
+const isSmall = () => window.matchMedia("(max-width:900px)").matches;
+function openZoom(){
+  $("zCard").innerHTML = lastSVG;
+  $("zoom").hidden = false;
+  const sc = $("zoom").querySelector(".zscroll");
+  sc.scrollTop = 0;
+  // land on the middle of the figure, not the empty left margin
+  requestAnimationFrame(()=>{ sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth)/2); });
+}
+function closeZoom(){ $("zoom").hidden = true; }
+$("cardWrap").addEventListener("click", openZoom);
+$("zClose").onclick = closeZoom;
+document.querySelectorAll("#segZoom button").forEach(b=>{
+  b.onclick = ()=>{
+    const fit = b.dataset.v === "fit";
+    $("zCard").classList.toggle("fit", fit);
+    $("zNote").textContent = fit ? "Pinch to zoom in" : "Drag to pan";
+    document.querySelectorAll("#segZoom button").forEach(x=>x.classList.toggle("on", x===b));
+    if(!fit) openZoomCentre();
+  };
+});
+function openZoomCentre(){
+  const sc = $("zoom").querySelector(".zscroll");
+  requestAnimationFrame(()=>{ sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth)/2); });
+}
+$("zoom").addEventListener("click", e=>{ if(e.target.id === "zoom") closeZoom(); });
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeZoom(); });
+
+/* ══════════════════════════════════════════════════════════════════
+   boot
+   ══════════════════════════════════════════════════════════════════ */
+MODELS = FALLBACK.slice();
+loadPreset();
+if(isSmall()) document.querySelectorAll(".sec").forEach((el,i)=>{
+  if(i > 0) el.classList.add("collapsed");
+});
+fetchModels();
+</script>
+</body>
+</html>
