@@ -59,7 +59,6 @@
     display:flex;align-items:flex-start;justify-content:center;background:var(--bg);
   }
   #cardWrap{width:100%;max-width:1120px;cursor:zoom-in;border-radius:3px}
-  #cardWrap:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
   #cardWrap svg{
     display:block;width:100%;height:auto;pointer-events:none;
     box-shadow:0 1px 2px rgba(0,0,0,.06),0 14px 36px -10px rgba(0,0,0,.16);
@@ -218,7 +217,7 @@
     color:var(--ink3);font-size:12.5px;
   }
   /* ── inspect overlay ───────────────────────────────────── */
-  #zoom{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column}
+  #zoom{position:fixed;inset:0;z-index:60;background:rgba(24,22,20,.88);display:flex;flex-direction:column}
   #zoom[hidden]{display:none!important}
   .zbar{
     flex:0 0 auto;height:50px;display:flex;align-items:center;justify-content:space-between;
@@ -226,6 +225,7 @@
   }
   .zbar span{font-size:12px;color:var(--ink3)}
   .zscroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px}
+  .zscroll::-webkit-scrollbar-thumb{background:#6B6763;border-color:transparent}
   #zCard{width:1200px}
   #zCard svg{display:block;width:1200px;height:auto;box-shadow:0 2px 10px rgba(0,0,0,.12)}
   #zCard.fit{width:100%}
@@ -233,7 +233,13 @@
   .zbar .seg{flex:0 0 auto}
   .zbar .seg button{min-width:46px;padding:6px 10px;min-height:30px;font-size:11.5px}
   .lbl-s{display:none}
-  #tapHint{display:none}
+  #tapHint{
+    display:block;margin:12px auto 0;background:transparent;border:0;padding:6px 10px;
+    font:550 11px/1 var(--sans);letter-spacing:.04em;color:var(--ink3);cursor:pointer;
+    border-radius:6px;min-height:0;
+  }
+  #tapHint:hover{background:var(--panel);color:var(--ink)}
+  #tapHint:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 
   /* ── phones and small tablets ──────────────────────────── */
   @media (max-width:900px){
@@ -252,10 +258,7 @@
     }
     #cardWrap{max-width:none}
     #cardWrap svg{max-height:31vh;cursor:zoom-in;border-radius:2px}
-    #tapHint{
-      display:block;margin:8px 0 0;text-align:center;
-      font:500 10px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink4);
-    }
+    #tapHint{margin:8px auto 0;font-size:11.5px;min-height:34px;padding:8px 12px}
     #side{
       order:1;flex:1 1 auto;min-height:0;max-width:none;width:100%;
       overflow-y:auto;border-right:0;padding-bottom:32px;
@@ -462,8 +465,8 @@
   </aside>
 
   <div id="stage">
-    <div id="cardWrap" role="button" tabindex="0" aria-label="Inspect the figure at full size"></div>
-    <p id="tapHint">Tap to inspect</p>
+    <div id="cardWrap"></div>
+    <button id="tapHint" type="button">Inspect at full size</button>
   </div>
 </main>
 
@@ -1420,10 +1423,28 @@ function buildSVG(){
     + '</svg>';
 }
 let lastSVG = "", lastH = 0;
+function failCard(msg){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="300" viewBox="0 0 '+W+' 300">'
+    + R(0,0,W,300,C.card)
+    + T(W/2, 142, "This figure could not be drawn.", {fs:20, w:700, anchor:"middle"})
+    + T(W/2, 172, String(msg).slice(0,110), {ff:MONO, fs:12, fill:C.ink3, anchor:"middle"})
+    + T(W/2, 200, "Change any setting to try again. Nothing you typed was lost.",
+        {fs:12.5, fill:C.ink2, anchor:"middle"})
+    + '</svg>';
+}
 function draw(){
-  lastSVG = buildSVG();
-  $("cardWrap").innerHTML = lastSVG;
-  if(!$("zoom").hidden) $("zCard").innerHTML = lastSVG;
+  let svg;
+  try{
+    svg = buildSVG();
+  }catch(err){
+    console.error("figure render failed:", err);
+    $("cardWrap").innerHTML = lastSVG || failCard(err && err.message);
+    setStatus("figure render failed: " + (err && err.message), "err");
+    return;
+  }
+  lastSVG = svg;
+  $("cardWrap").innerHTML = svg;
+  if(!$("zoom").hidden) $("zCard").innerHTML = svg;
   queueSave();
 }
 
@@ -1893,9 +1914,10 @@ function closeZoom(){
   zoomReturn = null;
 }
 $("cardWrap").addEventListener("click", openZoom);
-$("cardWrap").addEventListener("keydown", e=>{
-  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openZoom(); }
-});
+$("tapHint").addEventListener("click", openZoom);
+function syncHint(){ $("tapHint").textContent = isSmall() ? "Tap to inspect" : "Inspect at full size"; }
+syncHint();
+window.addEventListener("resize", syncHint);
 $("zClose").onclick = closeZoom;
 document.querySelectorAll("#segZoom button").forEach(b=>{
   b.onclick = ()=>{
