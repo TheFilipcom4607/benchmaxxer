@@ -17,6 +17,8 @@ like it came out of a model launch post.
   cropped y-axis with a break glyph where zero should be.
 - Exports a 2400px-wide PNG or an SVG. The figure is drawn as SVG, so the export
   is exactly what the preview shows.
+- Keeps your figure in the browser between reloads. The preset button puts
+  everything back to the demo.
 
 Everything runs in the browser. No build step, no dependencies, one file.
 

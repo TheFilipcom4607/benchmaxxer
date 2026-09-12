@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Benchmaxxer — Fake Benchmark Figure Studio</title>
+<meta name="description" content="Invent a benchmark, pick real models, type whatever numbers flatter you, and export a figure that looks like a model launch post. Every number is made up.">
+<meta name="color-scheme" content="light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Benchmaxxer — fake benchmark figure studio">
+<meta property="og:description" content="Invent a benchmark, pick real models, type whatever numbers flatter you, and export a figure that looks like a model launch post. Every number is made up.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23191510'/%3E%3Crect x='6' y='18' width='5' height='8' fill='%23948B7F'/%3E%3Crect x='13.5' y='12' width='5' height='14' fill='%23E0913F'/%3E%3Crect x='21' y='6' width='5' height='20' fill='%23C4623F'/%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#EFEFEE;
@@ -52,9 +58,10 @@
     flex:1;min-width:0;overflow:auto;padding:32px 32px 56px;
     display:flex;align-items:flex-start;justify-content:center;background:var(--bg);
   }
-  #cardWrap{width:100%;max-width:1120px}
+  #cardWrap{width:100%;max-width:1120px;cursor:zoom-in;border-radius:3px}
+  #cardWrap:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
   #cardWrap svg{
-    display:block;width:100%;height:auto;
+    display:block;width:100%;height:auto;pointer-events:none;
     box-shadow:0 1px 2px rgba(0,0,0,.06),0 14px 36px -10px rgba(0,0,0,.16);
   }
   /* ── sections ──────────────────────────────────────────── */
@@ -152,11 +159,19 @@
   }
   .mrow{
     display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;
-    border-bottom:1px solid var(--line2);
+    width:100%;text-align:left;background:transparent;color:var(--ink);
+    border:0;border-bottom:1px solid var(--line2);border-radius:0;
+    font:13px/1.5 var(--sans);
   }
   .mrow:last-child{border-bottom:0}
-  .mrow:hover{background:var(--panel)}
-  .mrow.added{opacity:.4;cursor:default}
+  .mrow:hover{background:var(--panel);border-color:var(--line2)}
+  .mrow:focus-visible{background:var(--panel);outline:2px solid var(--primary);outline-offset:-2px}
+  .mrow[disabled]{opacity:.4;cursor:default}
+  .mrow[disabled]:hover{background:transparent;border-color:var(--line2)}
+  .mnote{
+    padding:8px 10px;border-top:1px solid var(--line2);
+    font:400 11px/1.4 var(--mono);color:var(--ink3);
+  }
   .mrow .nm{flex:1;min-width:0;font-size:12.5px;font-weight:550;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mrow .nm em{
@@ -275,9 +290,9 @@
 <header class="bar">
   <div class="brand"><b>Benchmaxxer</b><i>fake benchmark figure studio</i></div>
   <div class="spacer"></div>
-  <button id="btnPreset"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
-  <button id="btnSvg">SVG</button>
-  <button class="p" id="btnPng"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
+  <button id="btnPreset" title="Reset everything to the demo figure"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
+  <button id="btnSvg" aria-label="Download SVG">SVG</button>
+  <button class="p" id="btnPng" aria-label="Download PNG"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
 </header>
 
 <main>
@@ -305,7 +320,7 @@
       <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Figure</h3>
       <div class="body">
         <span class="tiny">Chart type</span>
-        <div class="seg" id="segChart">
+        <div class="seg" id="segChart" role="group" aria-label="Chart type">
           <button data-v="column" class="on">Columns</button>
           <button data-v="bar">Bars</button>
           <button data-v="scatter">Scatter</button>
@@ -330,11 +345,11 @@
           <span class="swatch"><input type="color" id="fAccent"></span>
           <input type="text" id="fAccentHex">
         </div>
-        <div class="chips" id="chips"></div>
+        <div class="chips" id="chips" role="group" aria-label="Accent presets"></div>
         <div style="height:14px"></div>
 
         <span class="tiny">Competitor colours</span>
-        <div class="seg" id="segColor">
+        <div class="seg" id="segColor" role="group" aria-label="Competitor colours">
           <button data-v="ramp" class="on">Warm ramp</button>
           <button data-v="grey">Grey</button>
           <button data-v="all">All distinct</button>
@@ -368,11 +383,11 @@
             <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/><path d="M9.2 9.2L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             <input type="text" id="fSearch" placeholder="Search models">
           </div>
-          <button class="ico" id="btnFetch" title="Reload from OpenRouter">
+          <button class="ico" id="btnFetch" title="Reload from OpenRouter" aria-label="Reload the model list from OpenRouter">
             <svg viewBox="0 0 12 12" fill="none"><path d="M10.5 6a4.5 4.5 0 1 1-1.6-3.45" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10.8 1v2.4H8.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <p id="status">not loaded</p>
+        <p id="status" role="status">not loaded</p>
         <div id="mlist"></div>
         <p class="hint">If the fetch is blocked, open <b>openrouter.ai/api/v1/models</b>, copy the JSON and paste it here.</p>
         <label class="f" style="margin-top:10px"><span>Paste models JSON</span>
@@ -412,19 +427,19 @@
   </aside>
 
   <div id="stage">
-    <div id="cardWrap"></div>
+    <div id="cardWrap" role="button" tabindex="0" aria-label="Inspect the figure at full size"></div>
     <p id="tapHint">Tap to inspect</p>
   </div>
 </main>
 
-<div id="zoom" hidden>
+<div id="zoom" hidden role="dialog" aria-modal="true" aria-label="Figure inspector">
   <div class="zbar">
-    <div class="seg" id="segZoom">
+    <div class="seg" id="segZoom" role="group" aria-label="Inspector scale">
       <button data-v="full" class="on">1:1</button>
       <button data-v="fit">Fit</button>
     </div>
     <span id="zNote">Drag to pan</span>
-    <button id="zClose">Done</button>
+    <button id="zClose" class="p">Done</button>
   </div>
   <div class="zscroll"><div id="zCard"></div></div>
 </div>
@@ -487,46 +502,73 @@ function hash(str){ let h=2166136261; const s=String(str);
 function rnd(seed){ const x=Math.sin(hash(seed)*12.9898)*43758.5453; return x-Math.floor(x); }
 const pick = (arr,seed) => arr[Math.floor(rnd(seed)*arr.length)%arr.length];
 
-function tw(text, size, family){
-  const f = family==="mono" ? 0.60 : family==="serif" ? 0.475 : 0.525;
-  return String(text).length * size * f;
+/* text metrics. the figure is SVG, so wrapping and ellipsising have to be
+   decided before the browser lays the text out. measure with canvas in the
+   same font, and keep the old character-count guess as a fallback. */
+const MEASURE = (()=>{ try{ return document.createElement("canvas").getContext("2d"); }
+                       catch(e){ return null; } })();
+const MEASURE_CACHE = new Map();
+function tw(text, size, family, o){
+  const s = String(text);
+  if(!s) return 0;
+  o = o || {};
+  const weight = o.w || 400, ls = o.ls || 0;
+  const key = family+"|"+size+"|"+weight+"|"+s;
+  let w = MEASURE_CACHE.get(key);
+  if(w === undefined){
+    if(MEASURE){
+      MEASURE.font = weight+" "+size+"px "+(family==="mono" ? MONO : family==="serif" ? SERIF : SANS);
+      w = MEASURE.measureText(s).width;
+    }else{
+      w = s.length * size * (family==="mono" ? 0.60 : family==="serif" ? 0.475 : 0.525);
+    }
+    if(MEASURE_CACHE.size > 5000) MEASURE_CACHE.clear();
+    MEASURE_CACHE.set(key, w);
+  }
+  return w + ls*Math.max(0, s.length-1);
 }
-function wrap(text, maxW, size, family, maxLines){
+function wrap(text, maxW, size, family, maxLines, o){
   const words = String(text).split(/\s+/).filter(Boolean), out=[]; let cur="";
   for(const w of words){
     const t = cur ? cur+" "+w : w;
-    if(tw(t,size,family) > maxW && cur){ out.push(cur); cur=w; } else cur=t;
+    if(tw(t,size,family,o) > maxW && cur){ out.push(cur); cur=w; } else cur=t;
   }
   if(cur) out.push(cur);
   if(maxLines && out.length > maxLines){
     const keep = out.slice(0, maxLines);
-    keep[maxLines-1] = ellip(keep[maxLines-1] + " " + out.slice(maxLines).join(" "), maxW, size, family);
+    keep[maxLines-1] = ellip(keep[maxLines-1] + " " + out.slice(maxLines).join(" "), maxW, size, family, o);
     return keep;
   }
   return out.length ? out : [""];
 }
-function ellip(text, maxW, size, family){
+function ellip(text, maxW, size, family, o){
   let t = String(text);
-  if(tw(t,size,family) <= maxW) return t;
-  while(t.length>2 && tw(t+"…",size,family) > maxW) t=t.slice(0,-1);
+  if(tw(t,size,family,o) <= maxW) return t;
+  while(t.length>2 && tw(t+"…",size,family,o) > maxW) t=t.slice(0,-1);
   return t.replace(/[\s,.-]+$/,"")+"…";
 }
-function fmt(v){
-  if(!isFinite(v)) return "—";
-  const d = +S.dec, a = Math.abs(v);
-  let str;
-  if(a >= 1e6 && d<=1) str = (v/1e6).toFixed(a>=1e7?0:1)+"M";
-  else if(a >= 1e4 && d<=1) str = (v/1e3).toFixed(0)+"k";
-  else str = v.toFixed(d);
-  return str + (S.suffix||"");
-}
-function fmtTick(v){
+/* one abbreviation rule for value labels and axis ticks, so the two never
+   disagree about whether 200000 is "200k" or "200000.00" */
+function abbrev(v, dec){
   const a = Math.abs(v);
-  if(a >= 1e6) return (v/1e6).toFixed(a>=1e7?0:1)+"M"+(S.suffix||"");
-  if(a >= 1e4) return (v/1e3).toFixed(0)+"k"+(S.suffix||"");
-  if(a >= 10)  return v.toFixed(0)+(S.suffix||"");
-  if(a === 0)  return "0"+(S.suffix||"");
-  return v.toFixed(Math.min(1,+S.dec))+(S.suffix||"");
+  if(a >= 1e6) return (v/1e6).toFixed(a>=1e7?0:1)+"M";
+  if(a >= 1e4) return (v/1e3).toFixed(0)+"k";
+  return v.toFixed(dec);
+}
+function fmt(v){ return isFinite(v) ? abbrev(v, +S.dec) + (S.suffix||"") : "—"; }
+/* decimals a tick needs come from the step, not from the value decimals:
+   a step of 2.5 has to print 2.5, never a second "3" next to the first */
+function stepDec(step){
+  if(!isFinite(step) || step <= 0) return 0;
+  for(let d=0; d<=3; d++){
+    const k = step*Math.pow(10,d);
+    if(Math.abs(k - Math.round(k)) < 1e-9) return d;
+  }
+  return 2;
+}
+function fmtTick(v, step){
+  const d = step === undefined ? Math.min(1, +S.dec) : stepDec(step);
+  return abbrev(v, Math.abs(v) >= 10 ? Math.min(d,1) : d) + (S.suffix||"");
 }
 function niceMax(v){
   if(v<=0) return 1;
@@ -580,22 +622,42 @@ function addEntry(m){
     score: 0, cost: 0, series: "", hl: S.entries.length === 0
   });
 }
+/* every mode except "plausible" scores one row from that row alone, so a
+   single row can be scored without disturbing numbers already typed by hand */
+function scoreOne(e, mode){
+  const meta = e.meta || {}, name = e.modelId || e.label;
+  switch(mode){
+    case "numbers": return Math.max(...(String(name).match(/\d+(?:\.\d+)?/g) || ["0"]).map(Number));
+    case "namelen": return e.label.replace(/\s/g,"").length;
+    case "alpha":   return clamp(100 - (e.label.toLowerCase().charCodeAt(0)-97)*3.7, 4, 100);
+    case "context": return meta.context_length || 8192;
+    case "price":   return (parseFloat((meta.pricing||{}).prompt)||0)*1e6;
+    case "vowels":  return (e.label.match(/[aeiou]/gi)||[]).length;
+    case "random":  return 12 + rnd(e.label+"r")*86;
+    default:        return null;               // "plausible" needs the field
+  }
+}
+function costOne(e){
+  const name = e.modelId || e.label;
+  return ((parseFloat(((e.meta||{}).pricing||{}).prompt)||0)*1e6)
+      || +(0.4 + rnd(name+"c")*24).toFixed(2);
+}
+function axisCount(){
+  return Math.max(3,
+    S.axes.split(",").filter(t=>t.trim()).length,
+    S.steps.split(",").filter(t=>t.trim()).length);
+}
+function seriesOne(e){
+  const base = clamp(e.score, 5, 100), n = axisCount(), arr = [];
+  for(let k=0;k<n;k++) arr.push(+clamp(base*(0.55+0.55*rnd(e.label+k)), 3, 100).toFixed(1));
+  return arr.join(", ");
+}
+/* "Apply to all" — deliberately overwrites everything */
 function autoScore(mode){
   S.entries.forEach(e=>{
-    const meta = e.meta || {}, name = e.modelId || e.label;
-    let v;
-    switch(mode){
-      case "numbers": v = Math.max(...(String(name).match(/\d+(?:\.\d+)?/g) || ["0"]).map(Number)); break;
-      case "namelen": v = e.label.replace(/\s/g,"").length; break;
-      case "alpha":   v = 100 - (e.label.toLowerCase().charCodeAt(0)-97)*3.7; break;
-      case "context": v = meta.context_length || 8192; break;
-      case "price":   v = (parseFloat((meta.pricing||{}).prompt)||0)*1e6; break;
-      case "vowels":  v = (e.label.match(/[aeiou]/gi)||[]).length; break;
-      case "random":  v = 12 + rnd(e.label+"r")*86; break;
-      default:        v = 0;
-    }
-    e.score = v;
-    e.cost = ((parseFloat((meta.pricing||{}).prompt)||0)*1e6) || +(0.4 + rnd(name+"c")*24).toFixed(2);
+    const v = scoreOne(e, mode);
+    if(v !== null) e.score = v;
+    e.cost = costOne(e);
   });
   if(mode === "plausible"){
     const top = 91 + rnd(S.title+"t")*8;
@@ -607,12 +669,20 @@ function autoScore(mode){
       S.entries[idx].score = Math.max(4, top - drop);
     });
   }
-  const nAx = Math.max(3, S.axes.split(",").filter(s=>s.trim()).length, S.steps.split(",").length);
-  S.entries.forEach(e=>{
-    const base = clamp(e.score, 5, 100), arr = [];
-    for(let k=0;k<nAx;k++) arr.push(+clamp(base*(0.55+0.55*rnd(e.label+k)), 3, 100).toFixed(1));
-    e.series = arr.join(", ");
-  });
+  S.entries.forEach(e=>{ e.series = seriesOne(e); });
+}
+/* a newly picked model only fills in its own row */
+function scoreAdded(e, mode){
+  const v = scoreOne(e, mode);
+  if(v !== null) e.score = v;
+  else{
+    const others = S.entries.filter(x => x !== e).map(x => +x.score||0);
+    e.score = others.length
+      ? Math.max(4, Math.min(...others) - (1.6 + rnd(e.label+"d")*2.8))
+      : 91 + rnd(S.title+"t")*8;
+  }
+  e.cost = costOne(e);
+  e.series = seriesOne(e);
 }
 function orderedEntries(){
   const a = S.entries.slice();
@@ -675,48 +745,74 @@ function matches(m, q){
   return c.length > 1 && m._c.includes(c);
 }
 function setStatus(msg, cls){ const el = $("status"); el.textContent = msg; el.className = cls || ""; }
+const FETCH_TIMEOUT = 9000;
+let fetching = false;
 async function fetchModels(){
+  if(fetching) return;
+  fetching = true;
+  $("btnFetch").disabled = true;
   setStatus("fetching openrouter.ai/api/v1/models …");
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(()=>{ if(ctl) ctl.abort(); }, FETCH_TIMEOUT);
+  let payload = null, why = "";
   try{
-    const r = await fetch("https://openrouter.ai/api/v1/models", {headers:{accept:"application/json"}});
+    const r = await fetch("https://openrouter.ai/api/v1/models",
+      {headers:{accept:"application/json"}, signal: ctl ? ctl.signal : undefined});
     if(!r.ok) throw new Error("HTTP "+r.status);
-    ingest(await r.json(), "live");
+    payload = await r.json();
   }catch(err){
-    MODELS = FALLBACK.slice();
-    setStatus("fetch blocked ("+err.message+") — "+MODELS.length+" bundled models", "err");
-    renderModels();
+    why = err && err.name === "AbortError" ? "timed out after "+(FETCH_TIMEOUT/1000)+"s"
+        : (err && err.message) || "request failed";
+  }finally{
+    clearTimeout(timer);
+    fetching = false;
+    $("btnFetch").disabled = false;
   }
+  if(payload && ingest(payload, "live")) return;
+  if(!MODELS.length) MODELS = FALLBACK.slice();
+  setStatus("live list unavailable" + (why ? " ("+why+")" : "")
+    + " — using " + MODELS.length + " bundled models", "err");
+  renderModels();
 }
+/* true when the payload yielded at least one usable model */
 function ingest(j, how){
   const arr = Array.isArray(j) ? j : (j && j.data) || [];
-  if(!arr.length) throw new Error("no models in payload");
-  MODELS = arr.filter(m => m && m.id);
+  const list = Array.isArray(arr) ? arr.filter(m => m && m.id) : [];
+  if(!list.length) return false;
+  MODELS = list;
   MODELS.sort((a,b)=> String(a.name||a.id).localeCompare(String(b.name||b.id)));
   setStatus(MODELS.length + " models loaded (" + how + ")", "ok");
   renderModels();
+  return true;
 }
+const LIST_CAP = 80;
 function renderModels(){
   const q = $("fSearch").value.trim();
   const have = new Set(S.entries.map(e=>e.modelId).filter(Boolean));
   const hits = MODELS.filter(m => matches(m, q));
   if(q) hits.sort((a,b)=> scoreModel(b,q) - scoreModel(a,q) || a._n.length - b._n.length);
-  const shown = hits.slice(0, 80), box = $("mlist");
+  const shown = hits.slice(0, LIST_CAP), box = $("mlist");
   if(!shown.length){
-    box.innerHTML = '<div class="mrow" style="cursor:default;color:var(--ink3)">No matches</div>';
+    box.innerHTML = '<div class="mnote" style="border-top:0">'
+      + (MODELS.length ? "No model matches that search." : "No models loaded.") + '</div>';
     return;
   }
   box.innerHTML = shown.map(m=>{
-    const price = (parseFloat((m.pricing||{}).prompt)||0)*1e6;
-    return '<div class="mrow'+(have.has(m.id)?" added":"")+'" data-id="'+esc(m.id)+'">'
+    const price = (parseFloat((m.pricing||{}).prompt)||0)*1e6, added = have.has(m.id);
+    return '<button type="button" class="mrow" data-id="'+esc(m.id)+'"'+(added?" disabled":"")
+      + ' aria-label="'+esc((added?"Already added: ":"Add ")+niceLabel(m))+'">'
       + '<span class="nm">'+esc(niceLabel(m))+'<em>'+esc(m.id)+'</em></span>'
-      + '<span class="pl">'+(price ? "$"+price.toFixed(2) : "free")+'</span></div>';
-  }).join("");
+      + '<span class="pl">'+(price ? "$"+price.toFixed(2) : "free")+'</span></button>';
+  }).join("")
+  + (hits.length > shown.length
+      ? '<div class="mnote">'+shown.length+' of '+hits.length+' matches shown — keep typing</div>'
+      : "");
   box.querySelectorAll(".mrow").forEach(el=>{
     el.onclick = ()=>{
       const m = MODELS.find(x => x.id === el.dataset.id);
       if(!m || S.entries.some(e => e.modelId === m.id)) return;
       addEntry(m);
-      autoScore($("fAuto").value);
+      scoreAdded(S.entries[S.entries.length-1], $("fAuto").value);
       syncAll();
     };
   });
@@ -747,10 +843,11 @@ function renderEntries(){
     + '<div class="top">'
     +   '<span class="bead" style="background:'+colorFor(e)+'"></span>'
     +   '<input type="text" data-f="label" value="'+esc(e.label)+'">'
-    +   '<button class="ico star'+(e.hl?" on":"")+'" data-act="hl" title="This one is ours">'+ICON.st+'</button>'
-    +   '<button class="ico" data-act="up" title="Move up"'+(i===0?" disabled":"")+'>'+ICON.up+'</button>'
-    +   '<button class="ico" data-act="dn" title="Move down"'+(i===n-1?" disabled":"")+'>'+ICON.dn+'</button>'
-    +   '<button class="ico" data-act="rm" title="Remove">'+ICON.rm+'</button>'
+    +   '<button class="ico star'+(e.hl?" on":"")+'" data-act="hl" title="This one is ours"'
+    +     ' aria-pressed="'+(e.hl?"true":"false")+'" aria-label="Mark '+esc(e.label)+' as ours">'+ICON.st+'</button>'
+    +   '<button class="ico" data-act="up" title="Move up" aria-label="Move '+esc(e.label)+' up"'+(i===0?" disabled":"")+'>'+ICON.up+'</button>'
+    +   '<button class="ico" data-act="dn" title="Move down" aria-label="Move '+esc(e.label)+' down"'+(i===n-1?" disabled":"")+'>'+ICON.dn+'</button>'
+    +   '<button class="ico" data-act="rm" title="Remove" aria-label="Remove '+esc(e.label)+'">'+ICON.rm+'</button>'
     + '</div>'
     + (multi
       ? '<div class="nums wide"><div><span class="tiny">Series values</span>'
@@ -838,7 +935,7 @@ function header(){
   } else y += 8;
 
   const fs = S.title.length > 34 ? 34 : 42;
-  const tl = wrap(S.title, maxW, fs, S.serif?"serif":"sans", 2);
+  const tl = wrap(S.title, maxW, fs, S.serif?"serif":"sans", 2, {w:700, ls:-0.6});
   tl.forEach((ln,i)=> g += T(cx, y + i*(fs+6), ln,
     {ff:TITLE_FF(), fs, w:700, ls:-0.6, anchor:an}));
   y += (tl.length-1)*(fs+6) + 30;
@@ -855,7 +952,7 @@ function header(){
 function footer(y){
   let g = "", yy = y + 26;
   if(S.footnote.trim()){
-    const lines = wrap(S.footnote, W - 2*PAD, 11.5, "sans", 3);
+    const lines = wrap(S.footnote, W - 2*PAD - 12, 11.5, "sans", 3);
     lines.forEach((ln,i)=> g += T(PAD, yy + i*16, (i?"":"† ") + ln, {fs:11.5, fill:C.ink3}));
     yy += (lines.length-1)*16 + 30;
   }
@@ -896,7 +993,7 @@ function chartColumn(pt){
 
   if(S.grid) for(let t=0;t<=ry.n;t++){
     const y = y1 - (y1-y0)*t/ry.n;
-    g += L(x0, y, x1, y, t===0 ? C.grid : C.grid, t===0?1.1:1);
+    g += L(x0, y, x1, y, C.grid, t===0?1.1:1);
   }
 
   const groupW = (x1-x0)/n;
@@ -922,7 +1019,7 @@ function chartColumn(pt){
         {fs: e.hl?16:15, w:700, anchor:"middle", fill: e.hl ? S.accent : C.ink});
     }
     const nm = (S.rank ? (i+1)+". " : "") + e.label;
-    labelLines.push({cx, lines: wrap(nm, groupW - 8, 12.5, "sans", 2), hl: e.hl});
+    labelLines.push({cx, lines: wrap(nm, groupW - 8, 12.5, "sans", 2, {w:e.hl?700:500}), hl: e.hl});
   });
 
   g += L(x0, y0, x0, y1, C.axis, 1.2);
@@ -930,7 +1027,7 @@ function chartColumn(pt){
   for(let t=0;t<=ry.n;t++){
     const y = y1 - (y1-y0)*t/ry.n;
     g += L(x0-5, y, x0, y, C.axis, 1);
-    g += T(x0-11, y+3.8, fmtTick(ry.lo + ry.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"});
+    g += T(x0-11, y+3.8, fmtTick(ry.lo + ry.step*t, ry.step), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"});
   }
   let nameY = y1 + 26;
   if(broken){
@@ -974,7 +1071,7 @@ function chartBar(pt){
   }
   list.forEach((e,i)=>{
     const cy = y0 + i*rowH + rowH/2, v = +e.score||0, col = cols[i];
-    g += T(x0 - 16, cy + 4.6, ellip((S.rank?(i+1)+". ":"") + e.label, labelW, e.hl?14:13.5, "sans"),
+    g += T(x0 - 16, cy + 4.6, ellip((S.rank?(i+1)+". ":"") + e.label, labelW, e.hl?14:13.5, "sans", {w:e.hl?700:500}),
       {fs: e.hl?14:13.5, w: e.hl?700:500, fill: e.hl?C.ink:C.ink2, anchor:"end"});
     g += R(x0, cy - barH/2, px(v) - x0, barH, col);
     let ex = 0;
@@ -995,7 +1092,7 @@ function chartBar(pt){
   for(let t=0;t<=rx.n;t++){
     const x = x0 + (x1-x0)*t/rx.n;
     g += L(x, ay, x, ay+5, C.axis, 1);
-    g += T(x, ay+21, fmtTick(rx.lo + rx.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"});
+    g += T(x, ay+21, fmtTick(rx.lo + rx.step*t, rx.step), {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"});
   }
   if(broken){
     g += L(x0 - 26, ay, x0, ay, C.axis, 1.2);
@@ -1031,7 +1128,7 @@ function chartScatter(pt){
     g += T(x, y1+21, "$"+v.toFixed(rx.step<1?2:rx.step<10?1:0), {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"}); }
   for(let t=0;t<=ry.n;t++){ const v = ry.lo+ry.step*t, y = py(v);
     g += L(x0-5, y, x0, y, C.axis, 1);
-    g += T(x0-11, y+3.8, fmtTick(v), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
+    g += T(x0-11, y+3.8, fmtTick(v, ry.step), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
   g += T((x0+x1)/2, y1+46, S.xLabel, {fs:12.5, fill:C.ink2, w:600, anchor:"middle"});
   g += yAxisLabel(x0 - 62, y0, y1);
 
@@ -1047,7 +1144,7 @@ function chartScatter(pt){
   pts.slice().sort((a,b)=>a.y-b.y).forEach(p=>{
     const lab = p.e.label + (S.values ? "  " + fmt(+p.e.score||0) : "");
     const fs = p.e.hl ? 13 : 12;
-    const right = p.x + 24 + tw(lab, fs, "sans") < x1;
+    const right = p.x + 24 + tw(lab, fs, "sans", {w:p.e.hl?700:500}) < x1;
     const lane = right ? laneR : laneL;
     let ly = p.y + 4.5;
     for(let k=0;k<40;k++){ const hit = lane.find(v=>Math.abs(v-ly)<15); if(hit===undefined) break; ly = hit + 15.5; }
@@ -1062,6 +1159,9 @@ function chartScatter(pt){
 
 /* ---------- legend ---------- */
 function legend(y, list, cols){
+  /* no contenders means no legend: dividing by a zero-wide column used to
+     put height="NaN" on the whole figure */
+  if(!list.length) return {g:"", h:0};
   let g = "";
   const per = list.length > 4 ? 3 : list.length;
   const colW = (W - 2*PAD - 60) / per;
@@ -1072,7 +1172,7 @@ function legend(y, list, cols){
     g += R(x, yy-8, 20, 3.5, cols[i]);
     g += '<circle cx="'+(x+10)+'" cy="'+(yy-6.25)+'" r="'+(e.hl?4:3)+'" fill="'+cols[i]+
          '" stroke="'+C.panel+'" stroke-width="1.2"/>';
-    g += T(x+28, yy, ellip(e.label, colW-44, 12, "sans"),
+    g += T(x+28, yy, ellip(e.label, colW-44, 12, "sans", {w:e.hl?700:500}),
       {fs:12, w: e.hl?700:500, fill: e.hl?C.ink:C.ink2});
   });
   return {g, h: rows*23 + 10};
@@ -1099,7 +1199,7 @@ function chartLine(pt){
   g += L(x0, y0, x0, y1, C.axis, 1.2) + L(x0, y1, x1, y1, C.axis, 1.2);
   for(let t=0;t<=ry.n;t++){ const y = py(ry.lo+ry.step*t);
     g += L(x0-5, y, x0, y, C.axis, 1);
-    g += T(x0-11, y+3.8, fmtTick(ry.lo+ry.step*t), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
+    g += T(x0-11, y+3.8, fmtTick(ry.lo+ry.step*t, ry.step), {ff:MONO, fs:11, fill:C.ink3, anchor:"end"}); }
   for(let i=0;i<ns;i++){ g += L(px(i), y1, px(i), y1+5, C.axis, 1);
     g += T(px(i), y1+21, steps[i]||"", {ff:MONO, fs:11, fill:C.ink3, anchor:"middle"}); }
   g += T((x0+x1)/2, y1+46, S.xLabel, {fs:12.5, fill:C.ink2, w:600, anchor:"middle"});
@@ -1149,7 +1249,7 @@ function chartRadar(pt){
       {fs:10.5, fill:C.ink2, w:650, ls:1.2, anchor: Math.abs(a)<0.25 ? "middle" : a>0 ? "start" : "end"});
   }
   if(S.grid) for(let r=1;r<=rings;r++)
-    g += T(cx+5, cy - R0*r/rings + 4, fmtTick(maxY*r/rings), {ff:MONO, fs:9.5, fill:"#B3AA9C"});
+    g += T(cx+5, cy - R0*r/rings + 4, fmtTick(maxY*r/rings, maxY/rings), {ff:MONO, fs:9.5, fill:"#B3AA9C"});
 
   list.forEach((e,i)=>{
     const v = parseVals(e.series, na), col = cols[i];
@@ -1175,17 +1275,24 @@ function buildSVG(){
   const chart = fn(pt);
   const f = footer(pt + chart.h);
   const H = Math.round(f.y + 14);
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'
+  lastH = H;
+  const name = (S.title || "Untitled benchmark") + " — " + (S.metric || "figure");
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H
+    + '" role="img" aria-label="'+esc(name)+'">'
+    + '<title>'+esc(name)+'</title>'
+    + '<desc>Fabricated figure made with Benchmaxxer. Every value was typed or '
+    + 'generated by the author and is not the result of any evaluation.</desc>'
     + R(0, 0, W, H, C.card)
     + RR(PAD, pt, W - 2*PAD, chart.h - 8, 16, C.panel)
     + h.g + chart.g + f.g
     + '</svg>';
 }
-let lastSVG = "";
+let lastSVG = "", lastH = 0;
 function draw(){
   lastSVG = buildSVG();
   $("cardWrap").innerHTML = lastSVG;
   if(!$("zoom").hidden) $("zCard").innerHTML = lastSVG;
+  queueSave();
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1201,8 +1308,7 @@ const slug = () => (S.title||"benchmark").toLowerCase().replace(/[^a-z0-9]+/g,"-
   .replace(/^-|-$/g,"") || "benchmark";
 function exportSVG(){ download(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}), slug()+".svg"); }
 function exportPNG(){
-  const m = lastSVG.match(/width="(\d+)" height="(\d+)"/);
-  const w = +m[1], h = +m[2], k = 2;
+  const w = W, h = lastH || 900, k = 2;
   const btn = $("btnPng"), was = btn.innerHTML;
   btn.innerHTML = "Rendering…";
   const url = URL.createObjectURL(new Blob([lastSVG],{type:"image/svg+xml;charset=utf-8"}));
@@ -1269,15 +1375,16 @@ function loadPreset(){
   S.entries = [];
   const pool = MODELS.length ? MODELS : FALLBACK;
   // numbers in the same ballpark, so the joke lands without one bar dwarfing the rest
-  const wants = ["openai/gpt-5.2","anthropic/claude-opus-5","x-ai/grok-4.6","moonshotai/kimi-k2.5",
+  const wants = ["openai/gpt-5.2","anthropic/claude-opus-5","x-ai/grok-5","moonshotai/kimi-k2.5",
                  "google/gemini-3-pro","deepseek/deepseek-r2"];
   wants.forEach(id=>{
     const m = pool.find(x=>x.id===id) || FALLBACK.find(x=>x.id===id);
     if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m);
   });
-  while(S.entries.length < 5 && pool.length){
-    const m = pool[Math.floor(rnd(S.entries.length+"p")*pool.length)];
-    if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m); else break;
+  const off = Math.floor(rnd(Date.now()+"p")*Math.max(1,pool.length));
+  for(let i=0; S.entries.length < 5 && i < pool.length; i++){
+    const m = pool[(off+i) % pool.length];
+    if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m);
   }
   Object.assign(S, {
     eyebrow:"Announcements", title:"VERBENCH", subtitle:SUBS[0],
@@ -1287,10 +1394,12 @@ function loadPreset(){
   });
   $("fAuto").value = "numbers";
   autoScore("numbers");
-  let best = 0;
-  S.entries.forEach((e,i)=>{ if(e.score > S.entries[best].score) best = i; });
-  S.entries.forEach(e=>e.hl=false);
-  S.entries[best].hl = true;
+  if(S.entries.length){
+    let best = 0;
+    S.entries.forEach((e,i)=>{ if(e.score > S.entries[best].score) best = i; });
+    S.entries.forEach(e=>e.hl=false);
+    S.entries[best].hl = true;
+  }
   pushToInputs(); syncChartUI(); syncAll();
 }
 
@@ -1315,9 +1424,15 @@ function pushToInputs(){
   document.querySelectorAll("#segColor button").forEach(b=> b.classList.toggle("on", b.dataset.v===S.colorMode));
   document.querySelectorAll("#chips .chip").forEach(b=>
     b.classList.toggle("on", b.dataset.v.toLowerCase()===S.accent.toLowerCase()));
+  syncPressed("#segColor"); syncPressed("#chips");
+}
+function syncPressed(sel){
+  document.querySelectorAll(sel+" button").forEach(b=>
+    b.setAttribute("aria-pressed", b.classList.contains("on") ? "true" : "false"));
 }
 function syncChartUI(){
   document.querySelectorAll("#segChart button").forEach(b=> b.classList.toggle("on", b.dataset.v===S.chart));
+  syncPressed("#segChart");
   const isCol = S.chart==="column", isBar = S.chart==="bar", isXY = S.chart==="scatter"||S.chart==="line";
   const show = (el,on) => $(el).style.display = on ? "" : "none";
   show("axisBox", isXY || isCol || isBar);
@@ -1340,6 +1455,7 @@ function setAccent(v){
   S.accent = v; $("fAccent").value = v; $("fAccentHex").value = v;
   document.querySelectorAll("#chips .chip").forEach(b=>
     b.classList.toggle("on", b.dataset.v.toLowerCase()===v.toLowerCase()));
+  syncPressed("#chips");
   syncAll();
 }
 $("fAccent").addEventListener("input", e=> setAccent(e.target.value));
@@ -1348,24 +1464,32 @@ $("fAccentHex").addEventListener("input", e=>{
   if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) setAccent(v);
 });
 $("chips").innerHTML = CHIPS.map(c=>
-  '<button class="chip" data-v="'+c+'" style="background:'+c+'" title="'+c+'"></button>').join("");
+  '<button class="chip" data-v="'+c+'" style="background:'+c+'" title="'+c+
+  '" aria-label="Accent '+c+'"></button>').join("");
 $("chips").querySelectorAll(".chip").forEach(b=> b.onclick = ()=> setAccent(b.dataset.v));
 document.querySelectorAll("#segChart button").forEach(b=>
   b.onclick = ()=>{ S.chart = b.dataset.v; syncChartUI(); syncAll(); });
 document.querySelectorAll("#segColor button").forEach(b=>
   b.onclick = ()=>{ S.colorMode = b.dataset.v;
     document.querySelectorAll("#segColor button").forEach(x=>x.classList.toggle("on", x===b));
+    syncPressed("#segColor");
     syncAll(); });
 document.querySelectorAll(".sec > h3").forEach(h=>
   h.onclick = ()=> h.parentElement.classList.toggle("collapsed"));
 $("fSearch").addEventListener("input", renderModels);
 $("btnFetch").onclick = fetchModels;
 $("btnPaste").onclick = ()=>{
-  try{ ingest(JSON.parse($("fPaste").value), "pasted"); }
-  catch(err){ setStatus("could not parse that JSON: " + err.message, "err"); }
+  const raw = $("fPaste").value.trim();
+  if(!raw){ setStatus("paste the JSON from openrouter.ai/api/v1/models first", "err"); return; }
+  let j;
+  try{ j = JSON.parse(raw); }
+  catch(err){ setStatus("could not parse that JSON: " + err.message, "err"); return; }
+  if(!ingest(j, "pasted")) setStatus("that JSON contained no models with an id", "err");
 };
 $("btnAuto").onclick = ()=>{ autoScore($("fAuto").value); syncAll(); };
 $("btnBump").onclick = ()=>{
+  if(!S.entries.length) return;
+  if(!S.entries.some(e=>e.hl)) S.entries[0].hl = true;
   const top = Math.max(...S.entries.map(e=>+e.score||0));
   S.entries.forEach(e=>{ if(e.hl) e.score = +(top*(1.04 + rnd(e.label)*0.1)).toFixed(2); });
   syncAll();
@@ -1384,16 +1508,27 @@ $("btnSvg").onclick    = exportSVG;
 
 /* ── tap-to-inspect: the phone preview is too small to read ────── */
 const isSmall = () => window.matchMedia("(max-width:900px)").matches;
+let zoomReturn = null;
 function openZoom(){
+  zoomReturn = document.activeElement;
   $("zCard").innerHTML = lastSVG;
   $("zoom").hidden = false;
+  $("zClose").focus();
   const sc = $("zoom").querySelector(".zscroll");
   sc.scrollTop = 0;
   // land on the middle of the figure, not the empty left margin
   requestAnimationFrame(()=>{ sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth)/2); });
 }
-function closeZoom(){ $("zoom").hidden = true; }
+function closeZoom(){
+  if($("zoom").hidden) return;
+  $("zoom").hidden = true;
+  if(zoomReturn && typeof zoomReturn.focus === "function") zoomReturn.focus();
+  zoomReturn = null;
+}
 $("cardWrap").addEventListener("click", openZoom);
+$("cardWrap").addEventListener("keydown", e=>{
+  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openZoom(); }
+});
 $("zClose").onclick = closeZoom;
 document.querySelectorAll("#segZoom button").forEach(b=>{
   b.onclick = ()=>{
@@ -1401,6 +1536,7 @@ document.querySelectorAll("#segZoom button").forEach(b=>{
     $("zCard").classList.toggle("fit", fit);
     $("zNote").textContent = fit ? "Pinch to zoom in" : "Drag to pan";
     document.querySelectorAll("#segZoom button").forEach(x=>x.classList.toggle("on", x===b));
+    syncPressed("#segZoom");
     if(!fit) openZoomCentre();
   };
 });
@@ -1412,10 +1548,76 @@ $("zoom").addEventListener("click", e=>{ if(e.target.id === "zoom") closeZoom();
 document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeZoom(); });
 
 /* ══════════════════════════════════════════════════════════════════
+   persistence — a stray reload used to cost you every number you typed
+   ══════════════════════════════════════════════════════════════════ */
+const SAVE_KEY = "benchmaxxer.v1";
+const CHART_TYPES = ["column","bar","scatter","line","radar"];
+const COLOR_MODES = ["ramp","grey","all"];
+const AUTO_MODES = ["plausible","numbers","namelen","alpha","context","price","vowels","random"];
+let saveTimer = 0;
+function queueSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 400); }
+function saveState(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v: 1,
+      auto: $("fAuto").value,
+      /* keep only the two model fields the scorers read, not the whole
+         OpenRouter record */
+      s: Object.assign({}, S, {entries: S.entries.map(e=>({
+        id:e.id, label:e.label, modelId:e.modelId,
+        score:e.score, cost:e.cost, series:e.series, hl:e.hl,
+        meta: e.meta ? {context_length: e.meta.context_length,
+                        pricing: {prompt: (e.meta.pricing||{}).prompt}} : null
+      }))})
+    }));
+  }catch(err){ /* private mode, or the quota is full — not worth a dialog */ }
+}
+function normalizeState(){
+  if(CHART_TYPES.indexOf(S.chart) < 0) S.chart = "column";
+  if(COLOR_MODES.indexOf(S.colorMode) < 0) S.colorMode = "ramp";
+  if(!/^#[0-9a-f]{6}$/i.test(String(S.accent))) S.accent = "#C4623F";
+  S.dec = [0,1,2].indexOf(+S.dec) < 0 ? 1 : +S.dec;
+  ["eyebrow","title","subtitle","org","date","footnote","metric","xLabel","yLabel",
+   "axes","steps","axisMax","suffix"].forEach(k=>{ S[k] = S[k] == null ? "" : String(S[k]); });
+  ["zoom","sort","values","grid","err","rank","hib","center","serif"].forEach(k=>{ S[k] = !!S[k]; });
+  S.entries = (Array.isArray(S.entries) ? S.entries : []).slice(0,40).map(e=>{
+    e = e && typeof e === "object" ? e : {};
+    return {
+      id: e.id ? String(e.id) : uid(),
+      label: e.label == null ? "Model" : String(e.label),
+      modelId: e.modelId ? String(e.modelId) : "",
+      meta: e.meta && typeof e.meta === "object" ? e.meta : null,
+      score: isFinite(+e.score) ? +e.score : 0,
+      cost: isFinite(+e.cost) ? +e.cost : 0,
+      series: e.series == null ? "" : String(e.series),
+      hl: !!e.hl
+    };
+  });
+  let starred = false;
+  S.entries.forEach(e=>{ if(!e.hl) return; if(starred) e.hl = false; else starred = true; });
+}
+function loadState(){
+  let j;
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    j = JSON.parse(raw);
+  }catch(err){ return false; }
+  if(!j || j.v !== 1 || !j.s || typeof j.s !== "object") return false;
+  Object.assign(S, j.s);
+  normalizeState();
+  if(AUTO_MODES.indexOf(j.auto) >= 0) $("fAuto").value = j.auto;
+  return true;
+}
+$("fAuto").addEventListener("change", queueSave);
+
+/* ══════════════════════════════════════════════════════════════════
    boot
    ══════════════════════════════════════════════════════════════════ */
 MODELS = FALLBACK.slice();
-loadPreset();
+if(loadState()){ pushToInputs(); syncChartUI(); syncAll(); }
+else loadPreset();
+syncPressed("#segZoom");
 if(isSmall()) document.querySelectorAll(".sec").forEach((el,i)=>{
   if(i > 0) el.classList.add("collapsed");
 });
