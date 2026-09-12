@@ -179,6 +179,22 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   .mrow .pl{font:400 10.5px/1 var(--mono);color:var(--ink3);flex:0 0 auto}
+  /* ── presets ───────────────────────────────────────────── */
+  #presets{
+    border:1px solid var(--line);border-radius:10px;
+    background:var(--panel2);overflow:hidden;
+  }
+  .prow{
+    display:block;width:100%;text-align:left;padding:9px 11px;cursor:pointer;
+    background:transparent;color:var(--ink);
+    border:0;border-bottom:1px solid var(--line2);border-radius:0;
+  }
+  .prow:last-child{border-bottom:0}
+  .prow:hover{background:var(--panel);border-color:var(--line2)}
+  .prow:focus-visible{background:var(--panel);outline:2px solid var(--primary);outline-offset:-2px}
+  .prow.on{background:var(--panel3);box-shadow:inset 3px 0 0 var(--primary)}
+  .prow b{display:block;font:650 12.5px/1.35 var(--sans);letter-spacing:-.1px}
+  .prow em{display:block;font:400 11.5px/1.4 var(--sans);font-style:normal;color:var(--ink3)}
   /* ── contenders ────────────────────────────────────────── */
   .ent{
     border:1px solid var(--line);border-radius:10px;background:var(--panel2);
@@ -268,6 +284,9 @@
     .mrow{padding:11px 11px}
     .mrow .nm{font-size:13.5px}
     .ent{padding:11px}
+    .prow{padding:12px}
+    .prow b{font-size:13.5px}
+    .prow em{font-size:12.5px}
     .zscroll{padding:10px}
   }
   @media (max-width:900px) and (orientation:landscape){
@@ -290,13 +309,21 @@
 <header class="bar">
   <div class="brand"><b>Benchmaxxer</b><i>fake benchmark figure studio</i></div>
   <div class="spacer"></div>
-  <button id="btnPreset" title="Reset everything to the demo figure"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
+  <button id="btnPreset" title="Load a random preset"><span class="lbl-l">Stupid preset</span><span class="lbl-s">Preset</span></button>
   <button id="btnSvg" aria-label="Download SVG">SVG</button>
   <button class="p" id="btnPng" aria-label="Download PNG"><span class="lbl-l">Download PNG</span><span class="lbl-s">PNG</span></button>
 </header>
 
 <main>
   <aside id="side">
+
+    <section class="sec" id="secPresets">
+      <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Presets</h3>
+      <div class="body">
+        <div id="presets"></div>
+        <p class="hint">Each one is a finished figure. Change anything afterwards.</p>
+      </div>
+    </section>
 
     <section class="sec" id="secId">
       <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Benchmark identity</h3>
@@ -378,6 +405,12 @@
     <section class="sec" id="secModels">
       <h3><svg viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5l3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Models</h3>
       <div class="body">
+        <span class="tiny">Contenders are</span>
+        <div class="seg" id="segSubject" role="group" aria-label="Contender type">
+          <button data-v="models" class="on">Models</button>
+          <button data-v="labs">Labs</button>
+        </div>
+        <div style="height:13px"></div>
         <div class="row">
           <div class="search">
             <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.2" stroke="currentColor" stroke-width="1.5"/><path d="M9.2 9.2L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -405,8 +438,10 @@
             <option value="numbers">Biggest number in the model name</option>
             <option value="namelen">Length of the model name</option>
             <option value="alpha">Reverse alphabetical rank</option>
+            <option value="count">Models published on OpenRouter</option>
             <option value="context">Real context window</option>
             <option value="price">Real prompt price, per million</option>
+            <option value="perdollar">Real tokens per dollar</option>
             <option value="vowels">Vowel count</option>
             <option value="random">Pure noise</option>
           </select>
@@ -456,7 +491,7 @@ const S = {
   title: "VERBENCH",
   subtitle: "Measuring frontier capability as the largest integer appearing in the model identifier.",
   org: "Institute for Applied Numerology",
-  date: "September 2026",
+  date: monthYear(),
   footnote: "Scores are single-run and not corrected for anything. Error bars denote ± the standard error we would have computed had we run the evaluation more than once. Competitor numbers self-reported by us.",
   metric: "Numerical supremacy",
   xLabel: "Cost, USD per million input tokens",
@@ -464,6 +499,7 @@ const S = {
   axes: "Reasoning, Vibes, Obedience, Girth, Tokens per Dollar, Aura",
   steps: "1e21, 1e22, 1e23, 1e24, 1e25",
   chart: "column",
+  subject: "models",
   accent: "#C4623F",
   colorMode: "ramp",
   axisMax: "", dec: 1, suffix: "",
@@ -496,6 +532,10 @@ const esc = t => String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;")
                  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const uid = () => Math.random().toString(36).slice(2,9);
+function monthYear(){
+  try{ return new Date().toLocaleDateString("en-GB", {month:"long", year:"numeric"}); }
+  catch(err){ return String(new Date().getFullYear()); }
+}
 
 function hash(str){ let h=2166136261; const s=String(str);
   for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
@@ -632,6 +672,11 @@ function scoreOne(e, mode){
     case "alpha":   return clamp(100 - (e.label.toLowerCase().charCodeAt(0)-97)*3.7, 4, 100);
     case "context": return meta.context_length || 8192;
     case "price":   return (parseFloat((meta.pricing||{}).prompt)||0)*1e6;
+    case "perdollar": {
+      const pp = parseFloat((meta.pricing||{}).prompt)||0;
+      return pp > 0 ? 1/pp : 5e6;          // free is the best deal there is
+    }
+    case "count":   return meta.model_count || 1;
     case "vowels":  return (e.label.match(/[aeiou]/gi)||[]).length;
     case "random":  return 12 + rnd(e.label+"r")*86;
     default:        return null;               // "plausible" needs the field
@@ -705,17 +750,83 @@ function paint(list){
    ══════════════════════════════════════════════════════════════════ */
 let MODELS = [];
 const FALLBACK = [
-  {id:"openai/gpt-5.2",name:"OpenAI: GPT-5.2",context_length:400000,pricing:{prompt:"0.00000125"}},
-  {id:"anthropic/claude-opus-5",name:"Anthropic: Claude Opus 5",context_length:200000,pricing:{prompt:"0.000015"}},
-  {id:"anthropic/claude-sonnet-5",name:"Anthropic: Claude Sonnet 5",context_length:200000,pricing:{prompt:"0.000003"}},
-  {id:"google/gemini-3-pro",name:"Google: Gemini 3 Pro",context_length:1000000,pricing:{prompt:"0.00000125"}},
-  {id:"meta-llama/llama-4-405b-instruct",name:"Meta: Llama 4 405B Instruct",context_length:131072,pricing:{prompt:"0.0000009"}},
-  {id:"deepseek/deepseek-r2",name:"DeepSeek: R2",context_length:164000,pricing:{prompt:"0.00000055"}},
-  {id:"qwen/qwen3-max",name:"Qwen: Qwen3 Max",context_length:262144,pricing:{prompt:"0.0000012"}},
-  {id:"mistralai/mistral-large-2512",name:"Mistral: Large 2512",context_length:131072,pricing:{prompt:"0.000002"}},
-  {id:"x-ai/grok-5",name:"xAI: Grok 5",context_length:256000,pricing:{prompt:"0.000003"}},
-  {id:"moonshotai/kimi-k2.5",name:"MoonshotAI: Kimi K2.5",context_length:200000,pricing:{prompt:"0.0000006"}}
+  {id:"openai/gpt-6-astra-pro",name:"OpenAI: GPT-6 Astra Pro",context_length:1050000,pricing:{prompt:"0.00001"}},
+  {id:"openai/gpt-6-astra",name:"OpenAI: GPT-6 Astra",context_length:1050000,pricing:{prompt:"0.00001"}},
+  {id:"openai/gpt-5.6-terra",name:"OpenAI: GPT-5.6 Terra",context_length:1050000,pricing:{prompt:"0.000002"}},
+  {id:"anthropic/claude-fable-5.1",name:"Anthropic: Claude Fable 5.1",context_length:1000000,pricing:{prompt:"0.00001"}},
+  {id:"anthropic/claude-opus-5",name:"Claude Opus 5",context_length:1000000,pricing:{prompt:"0.000005"}},
+  {id:"anthropic/claude-sonnet-5",name:"Anthropic: Claude Sonnet 5",context_length:1000000,pricing:{prompt:"0.000002"}},
+  {id:"google/gemini-3.1-pro-preview",name:"Google: Gemini 3.1 Pro Preview",context_length:1048576,pricing:{prompt:"0.000002"}},
+  {id:"google/gemini-3.8-flash",name:"Google: Gemini 3.8 Flash",context_length:1048576,pricing:{prompt:"0.00000075"}},
+  {id:"x-ai/grok-4.6",name:"SpaceXAI: Grok 4.6",context_length:500000,pricing:{prompt:"0.000002"}},
+  {id:"deepseek/deepseek-v4-pro-0813",name:"DeepSeek: DeepSeek V4 Pro 0813",context_length:1048576,pricing:{prompt:"0.00000057948"}},
+  {id:"deepseek/deepseek-v4.1-flash",name:"DeepSeek: DeepSeek V4.1 Flash",context_length:1048576,pricing:{prompt:"0.00000015"}},
+  {id:"qwen/qwen3.8-max-0902",name:"Qwen: Qwen3.8 Max (0902)",context_length:1000000,pricing:{prompt:"0.000002"}},
+  {id:"moonshotai/kimi-k3",name:"MoonshotAI: Kimi K3",context_length:1048576,pricing:{prompt:"0.000002648138063"}},
+  {id:"meta/muse-spark-1.3",name:"Meta: Muse Spark 1.3",context_length:1048576,pricing:{prompt:"0.00000125"}},
+  {id:"z-ai/glm-5.3",name:"Z.ai: GLM 5.3",context_length:1310720,pricing:{prompt:"0.0000014"}},
+  {id:"mistralai/mistral-medium-3-5",name:"Mistral: Mistral Medium 3.5",context_length:262144,pricing:{prompt:"0.0000015"}}
 ];
+/* ---------- labs: the same roster, one rung up ----------
+   Grouped by the vendor name the API prints ("Anthropic: Claude Opus 5"),
+   not by the id prefix, so meta/ and meta-llama/ count as one lab. */
+let LABS = [];
+function buildLabs(){
+  const nameVotes = new Map();        // id prefix -> {display name: votes}
+  MODELS.forEach(m=>{
+    const slug = String(m.id).split("/")[0];
+    if(!slug) return;
+    const full = String(m.name||""), i = full.indexOf(": ");
+    if(i <= 0) return;
+    let v = nameVotes.get(slug);
+    if(!v){ v = {}; nameVotes.set(slug, v); }
+    const who = full.slice(0,i);
+    v[who] = (v[who]||0) + 1;
+  });
+  const nameFor = slug =>{
+    const v = nameVotes.get(slug);
+    if(!v) return slug;
+    let best = slug, n = 0;
+    for(const k in v) if(v[k] > n){ n = v[k]; best = k; }
+    return best;
+  };
+  const by = new Map();
+  MODELS.forEach(m=>{
+    const slug = String(m.id).split("/")[0];
+    if(!slug) return;
+    const name = nameFor(slug);
+    let g = by.get(name);
+    if(!g){ g = {name, count:0, ctx:0, price:Infinity, newest:0}; by.set(name, g); }
+    g.count++;
+    g.ctx = Math.max(g.ctx, +m.context_length||0);
+    g.newest = Math.max(g.newest, +m.created||0);
+    const pp = parseFloat((m.pricing||{}).prompt);
+    if(isFinite(pp) && pp > 0) g.price = Math.min(g.price, pp);
+  });
+  LABS = Array.from(by.values()).map(g=>({
+    id: "lab:" + compact(g.name),
+    name: g.name,
+    lab: true,
+    model_count: g.count,
+    context_length: g.ctx,                                  // their longest
+    pricing: {prompt: isFinite(g.price) ? String(g.price) : "0"}   // their cheapest
+  })).sort((a,b)=> b.model_count - a.model_count || a.name.localeCompare(b.name));
+}
+function subjectPool(){
+  if(S.subject === "labs"){
+    if(!LABS.length) buildLabs();
+    return LABS;
+  }
+  return MODELS.length ? MODELS : FALLBACK;
+}
+/* lab figures are aggregates, so a better model list means better labs */
+function refreshLabEntries(){
+  S.entries.forEach(e=>{
+    if(!e.meta || !e.meta.lab) return;
+    const l = LABS.find(x => x.id === e.modelId);
+    if(l) e.meta = l;
+  });
+}
 const norm    = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 const compact = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g,"");
 function indexModel(m){
@@ -769,7 +880,7 @@ async function fetchModels(){
     $("btnFetch").disabled = false;
   }
   if(payload && ingest(payload, "live")) return;
-  if(!MODELS.length) MODELS = FALLBACK.slice();
+  if(!MODELS.length){ MODELS = FALLBACK.slice(); buildLabs(); }
   setStatus("live list unavailable" + (why ? " ("+why+")" : "")
     + " — using " + MODELS.length + " bundled models", "err");
   renderModels();
@@ -781,35 +892,47 @@ function ingest(j, how){
   if(!list.length) return false;
   MODELS = list;
   MODELS.sort((a,b)=> String(a.name||a.id).localeCompare(String(b.name||b.id)));
-  setStatus(MODELS.length + " models loaded (" + how + ")", "ok");
+  buildLabs();
+  refreshLabEntries();
+  setStatus(MODELS.length + " models, " + LABS.length + " labs (" + how + ")", "ok");
   renderModels();
   return true;
 }
 const LIST_CAP = 80;
+const fmtCount = v => v >= 1e6 ? (v/1e6).toFixed(v>=1e7?0:1)+"M"
+                    : v >= 1e4 ? (v/1e3).toFixed(0)+"k" : String(v);
 function renderModels(){
   const q = $("fSearch").value.trim();
+  const labs = S.subject === "labs";
+  const pool = subjectPool();
   const have = new Set(S.entries.map(e=>e.modelId).filter(Boolean));
-  const hits = MODELS.filter(m => matches(m, q));
+  const hits = pool.filter(m => matches(m, q));
   if(q) hits.sort((a,b)=> scoreModel(b,q) - scoreModel(a,q) || a._n.length - b._n.length);
   const shown = hits.slice(0, LIST_CAP), box = $("mlist");
+  $("fSearch").placeholder = labs ? "Search labs" : "Search models";
   if(!shown.length){
     box.innerHTML = '<div class="mnote" style="border-top:0">'
-      + (MODELS.length ? "No model matches that search." : "No models loaded.") + '</div>';
+      + (pool.length ? "Nothing matches that search."
+                     : (labs ? "No labs found." : "No models loaded.")) + '</div>';
     return;
   }
   box.innerHTML = shown.map(m=>{
     const price = (parseFloat((m.pricing||{}).prompt)||0)*1e6, added = have.has(m.id);
+    const sub = labs ? (m.context_length ? "longest context " + fmtCount(m.context_length) : "lab")
+                     : m.id;
+    const tail = labs ? m.model_count + (m.model_count === 1 ? " model" : " models")
+                      : (price ? "$"+price.toFixed(2) : "free");
     return '<button type="button" class="mrow" data-id="'+esc(m.id)+'"'+(added?" disabled":"")
       + ' aria-label="'+esc((added?"Already added: ":"Add ")+niceLabel(m))+'">'
-      + '<span class="nm">'+esc(niceLabel(m))+'<em>'+esc(m.id)+'</em></span>'
-      + '<span class="pl">'+(price ? "$"+price.toFixed(2) : "free")+'</span></button>';
+      + '<span class="nm">'+esc(niceLabel(m))+'<em>'+esc(sub)+'</em></span>'
+      + '<span class="pl">'+esc(tail)+'</span></button>';
   }).join("")
   + (hits.length > shown.length
       ? '<div class="mnote">'+shown.length+' of '+hits.length+' matches shown — keep typing</div>'
       : "");
   box.querySelectorAll(".mrow").forEach(el=>{
     el.onclick = ()=>{
-      const m = MODELS.find(x => x.id === el.dataset.id);
+      const m = pool.find(x => x.id === el.dataset.id);
       if(!m || S.entries.some(e => e.modelId === m.id)) return;
       addEntry(m);
       scoreAdded(S.entries[S.entries.length-1], $("fAuto").value);
@@ -1205,6 +1328,7 @@ function chartLine(pt){
   g += T((x0+x1)/2, y1+46, S.xLabel, {fs:12.5, fill:C.ink2, w:600, anchor:"middle"});
   g += yAxisLabel(x0 - 62, y0, y1);
 
+  const ends = [];
   list.forEach((e,i)=>{
     const v = parseVals(e.series, ns), col = cols[i];
     const d = v.map((val,k)=> (k?"L":"M") + px(k).toFixed(1) + " " + py(val).toFixed(1)).join(" ");
@@ -1213,8 +1337,16 @@ function chartLine(pt){
          '" stroke-linejoin="round" stroke-linecap="round"'+dash+'/>';
     v.forEach((val,k)=> g += '<circle cx="'+px(k).toFixed(1)+'" cy="'+py(val).toFixed(1)+'" r="'+(e.hl?4.6:3.4)+
       '" fill="'+col+'" stroke="'+C.panel+'" stroke-width="1.4"/>');
-    if(S.values) g += T(px(ns-1)+11, py(v[v.length-1])+4, fmt(v[v.length-1]),
-      {ff:MONO, fs:11, w:700, fill:col});
+    if(S.values) ends.push({y: py(v[v.length-1])+4, text: fmt(v[v.length-1]), col});
+  });
+  /* two series can finish a tenth of a point apart, which stacks their
+     labels on the same baseline. push them apart, keeping the order. */
+  ends.sort((a,b)=> a.y - b.y);
+  let prevY = -1e9;
+  ends.forEach(L=>{
+    if(L.y - prevY < 13) L.y = prevY + 13;
+    prevY = L.y;
+    g += T(px(ns-1)+11, L.y, L.text, {ff:MONO, fs:11, w:700, fill:L.col});
   });
   const lg = legend(y1 + 70, list, cols);
   return {g: g + lg.g, h: (y1 + 70 + lg.h) - pt};
@@ -1371,36 +1503,263 @@ function randomName(){
 }
 function randomFoot(){ S.footnote = pick(FOOTS, Date.now()+Math.random()); pushToInputs(); draw(); }
 
-function loadPreset(){
+/* ══════════════════════════════════════════════════════════════════
+   presets — each one is a whole figure, not just a chart type
+   ══════════════════════════════════════════════════════════════════ */
+const PRESET_BASE = {
+  eyebrow:"Announcements", date:monthYear(), org:ORGS[0],
+  xLabel:"Cost, USD per million input tokens", yLabel:"Score (%)",
+  axes:AXES[0], steps:"1e21, 1e22, 1e23, 1e24, 1e25",
+  axisMax:"", dec:1, suffix:"", accent:"#C4623F", colorMode:"ramp",
+  zoom:false, sort:true, values:true, grid:true,
+  err:false, rank:false, hib:true, center:true, serif:false
+};
+const PRESETS = [
+  {
+    id:"verbench", name:"VERBENCH", blurb:"Biggest number in the name wins",
+    auto:"numbers", star:"max",
+    models:["openai/gpt-6-astra","anthropic/claude-opus-5","z-ai/glm-5.3",
+            "x-ai/grok-4.6","google/gemini-3.8-flash","moonshotai/kimi-k3"],
+    state:{
+      chart:"column", title:"VERBENCH", subtitle:SUBS[0], footnote:FOOTS[0],
+      metric:"Numerical supremacy", yLabel:"Largest integer in identifier", err:true
+    }
+  },
+  {
+    id:"margin", name:"MARGINBENCH", blurb:"A hair of a lead, cropped into a chasm",
+    auto:"plausible", star:"max", range:[91.4, 96.2],
+    models:["anthropic/claude-opus-5","openai/gpt-6-astra","google/gemini-3.1-pro-preview",
+            "x-ai/grok-4.6","qwen/qwen3.8-max-0902","moonshotai/kimi-k3"],
+    state:{
+      chart:"column", title:"MARGINBENCH",
+      subtitle:"State of the art across the board. The y axis starts where the interesting part starts.",
+      footnote:"The y axis does not begin at zero. Differences smaller than the error bars we chose not to draw are nevertheless decisive. Competitor numbers are self-reported by us and rounded in the direction of the argument.",
+      metric:"Overall accuracy", yLabel:"Accuracy (%)", suffix:"%",
+      org:ORGS[5], zoom:true
+    }
+  },
+  {
+    id:"frontier", name:"THE FRONTIER", blurb:"Up and to the left, by construction",
+    auto:"plausible", star:"max",
+    models:["anthropic/claude-sonnet-5","openai/gpt-6-astra-pro","anthropic/claude-fable-5.1",
+            "x-ai/grok-4.6","google/gemini-3.8-flash","deepseek/deepseek-v4.1-flash",
+            "moonshotai/kimi-k3","z-ai/glm-5.3"],
+    state:{
+      chart:"scatter", title:"THE FRONTIER", eyebrow:"Research",
+      subtitle:"Our model is up and to the left. The axes were chosen after the numbers came in.",
+      footnote:"Prices are list prices for input tokens and ignore output, caching, and the rate limit you will actually be given. Capability is the mean of the benchmarks on which we lead.",
+      metric:"Cost against capability", yLabel:"Capability (%)", suffix:"%",
+      org:ORGS[2], accent:"#4A6C9B"
+    }
+  },
+  {
+    id:"emergence", name:"EMERGENCE", blurb:"A scaling law fitted to five points",
+    auto:"plausible", star:"max", curve:"rising",
+    models:["openai/gpt-6-astra","anthropic/claude-opus-5","google/gemini-3.8-flash",
+            "deepseek/deepseek-v4-pro-0813"],
+    state:{
+      chart:"line", title:"EMERGENCE", eyebrow:"Technical report",
+      subtitle:"Capability as a function of training compute. The curve was fitted to five points, four of which are ours.",
+      footnote:"The rightmost point is an extrapolation, as is the one to its left. Compute figures are our estimates of other people's spending. The trend is assumed to continue.",
+      metric:"Emergent capability", xLabel:"Training compute (FLOP)",
+      yLabel:"Score (%)", suffix:"%", axisMax:"100",
+      org:ORGS[4], accent:"#3F7A6B", colorMode:"all"
+    }
+  },
+  {
+    id:"aura", name:"AURA-1", blurb:"Six axes, one flattering shape",
+    auto:"plausible", star:"max", curve:"dominant",
+    models:["anthropic/claude-fable-5.1","openai/gpt-6-astra","x-ai/grok-4.6",
+            "meta/muse-spark-1.3"],
+    state:{
+      chart:"radar", title:"AURA-1", eyebrow:"Model card",
+      subtitle:"Six dimensions, chosen because the chart has six sides.",
+      footnote:"Each axis is normalised so that our model reaches the outer ring on at least one of them. Axis order was chosen to make the shape pleasing.",
+      metric:"General capability", axes:AXES[0], axisMax:"100", suffix:"%",
+      org:ORGS[1], accent:"#8A5B9E", colorMode:"all"
+    }
+  },
+  {
+    id:"arena", name:"VIBEARENA", blurb:"Elo from eleven votes, ranked",
+    auto:"plausible", star:"max", range:[1180,1465],
+    models:["anthropic/claude-opus-5","openai/gpt-6-astra-pro","google/gemini-3.1-pro-preview",
+            "x-ai/grok-4.6","moonshotai/kimi-k3","qwen/qwen3.8-max-0902",
+            "z-ai/glm-5.3","deepseek/deepseek-v4-pro-0813"],
+    state:{
+      chart:"bar", title:"VIBEARENA", eyebrow:"Leaderboard",
+      subtitle:"Head-to-head preference, aggregated into a single number that cannot be checked.",
+      footnote:"Elo computed from eleven pairwise votes, nine of them cast by the first author. Intervals are one standard error of a quantity we did not compute. Ties were awarded to whichever model we recognised.",
+      metric:"Arena Elo", yLabel:"Elo", dec:0,
+      org:ORGS[1], accent:"#E0913F", zoom:true, rank:true, err:true
+    }
+  },
+  {
+    id:"haystack", name:"HAYSTACK", blurb:"Real context windows, unread",
+    auto:"context", star:"max",
+    models:["z-ai/glm-5.3","openai/gpt-6-astra","google/gemini-3.8-flash",
+            "moonshotai/kimi-k3","anthropic/claude-opus-5","x-ai/grok-4.6",
+            "mistralai/mistral-medium-3-5"],
+    state:{
+      chart:"bar", title:"HAYSTACK",
+      subtitle:"We did not test retrieval at these lengths. We tested that the number is large.",
+      footnote:"Context window as advertised by the provider. Whether anything in the middle of it can be retrieved is left to future work. Figures are tokens, not words, and not the same tokens across vendors.",
+      metric:"Advertised context window", yLabel:"Tokens", dec:0,
+      org:ORGS[3], accent:"#3F7A6B"
+    }
+  },
+  {
+    id:"labmaxx", name:"LABMAXX", blurb:"Labs, ranked by sheer volume",
+    subject:"labs", auto:"count", star:"max",
+    models:["lab:openai","lab:google","lab:anthropic","lab:qwen","lab:deepseek",
+            "lab:meta","lab:mistral","lab:moonshotai"],
+    state:{
+      chart:"bar", title:"LABMAXX", eyebrow:"State of the industry",
+      subtitle:"Research output, measured as the number of things published.",
+      footnote:"Counts every listing on one aggregator, including previews, batch variants and the same weights offered at three context lengths. A lab that ships one good model scores one.",
+      metric:"Models published", yLabel:"Listings", dec:0,
+      org:ORGS[3], accent:"#4A6C9B", rank:true
+    }
+  },
+  {
+    id:"pillars", name:"SIX PILLARS", blurb:"Labs on a radar, ours outermost",
+    subject:"labs", auto:"plausible", star:"max", curve:"dominant",
+    models:["lab:anthropic","lab:openai","lab:google","lab:meta"],
+    state:{
+      chart:"radar", title:"SIX PILLARS", eyebrow:"Position paper",
+      subtitle:"An institutional assessment, conducted by one of the institutions.",
+      footnote:"Dimensions were selected after the assessment. Each axis is normalised so that our organisation reaches the outer ring. Rival scores are inferred from their blog posts.",
+      metric:"Institutional standing",
+      axes:"Safety, Vibes, Blog cadence, Naming, Pricing pages, Aura",
+      axisMax:"100", suffix:"%", org:ORGS[1], accent:"#8A5B9E", colorMode:"all"
+    }
+  },
+  {
+    id:"thrift", name:"THRIFTBENCH", blurb:"Real tokens per dollar",
+    auto:"perdollar", star:"max",
+    models:["deepseek/deepseek-v4.1-flash","google/gemini-3.8-flash","meta/muse-spark-1.3",
+            "z-ai/glm-5.3","anthropic/claude-sonnet-5","moonshotai/kimi-k3",
+            "openai/gpt-6-astra-pro"],
+    state:{
+      chart:"bar", title:"THRIFTBENCH", eyebrow:"Pricing",
+      subtitle:"Efficiency, defined here as the metric on which we are ahead.",
+      footnote:"Tokens per dollar uses list input prices. Output tokens, of which our model produces considerably more, are not counted. Prices change without notice and have already changed.",
+      metric:"Input tokens per dollar", yLabel:"Tokens per USD", dec:0,
+      org:ORGS[3], accent:"#232321"
+    }
+  }
+];
+let activePreset = "";
+
+/* map the scored values onto a different band, for figures whose numbers
+   are not percentages */
+function rescale(range){
+  if(!S.entries.length) return;
+  const vs = S.entries.map(e=>+e.score||0);
+  const lo = Math.min(...vs), hi = Math.max(...vs);
+  const dec = (range[1] - range[0]) <= 40 ? 1 : 0;
+  S.entries.forEach(e=>{
+    const t = hi > lo ? ((+e.score||0) - lo)/(hi - lo) : 1;
+    e.score = +(range[0] + t*(range[1] - range[0])).toFixed(dec);
+  });
+}
+/* a scaling law that goes down is not a scaling law: climb toward the
+   entry's own score, fast at first, flattening at the right */
+function risingSeries(){
+  const n = axisCount(), cap = userMax() || 100;
+  S.entries.forEach(e=>{
+    const top = clamp(+e.score||50, 8, cap);
+    const start = top*(0.26 + 0.16*rnd(e.label+"s")), out = [];
+    for(let k=0;k<n;k++){
+      const t = n < 2 ? 1 : k/(n-1);
+      const jitter = 1 + (rnd(e.label+"j"+k) - 0.5)*0.05;
+      out.push(+clamp((start + (top-start)*Math.pow(t,0.62))*jitter, 2, cap).toFixed(1));
+    }
+    e.series = out.join(", ");
+  });
+}
+/* the starred model takes the outer edge of the radar on every axis,
+   which is the only reason anyone reaches for a radar */
+function dominantSeries(){
+  const ours = S.entries.findIndex(e=>e.hl);
+  if(ours < 0) return;
+  const n = axisCount(), cap = userMax() || 100;
+  S.entries.forEach((e,i)=>{
+    if(i === ours) return;
+    const out = [];
+    for(let k=0;k<n;k++) out.push(+(cap*(0.42 + 0.44*rnd(e.label+"r"+k))).toFixed(1));
+    e.series = out.join(", ");
+  });
+  const mine = [];
+  for(let k=0;k<n;k++){
+    let hi = 0;
+    S.entries.forEach((e,i)=>{ if(i !== ours) hi = Math.max(hi, parseVals(e.series,n)[k]); });
+    mine.push(+clamp(hi + (cap-hi)*(0.45 + 0.5*rnd("m"+k)), 5, cap).toFixed(1));
+  }
+  S.entries[ours].series = mine.join(", ");
+}
+/* "max", "min", or a model id */
+function starEntry(spec){
+  if(!S.entries.length) return;
+  S.entries.forEach(e=> e.hl = false);
+  let idx = 0;
+  if(typeof spec === "string" && spec.indexOf("/") > 0){
+    const j = S.entries.findIndex(e => e.modelId === spec);
+    idx = j < 0 ? 0 : j;
+  }else if(spec === "min"){
+    S.entries.forEach((e,i)=>{ if((+e.score||0) < (+S.entries[idx].score||0)) idx = i; });
+  }else{
+    S.entries.forEach((e,i)=>{ if((+e.score||0) > (+S.entries[idx].score||0)) idx = i; });
+  }
+  S.entries[idx].hl = true;
+}
+function bumpOurs(){
+  if(!S.entries.length) return;
+  if(!S.entries.some(e=>e.hl)) S.entries[0].hl = true;
+  const top = Math.max(...S.entries.map(e=>+e.score||0));
+  S.entries.forEach(e=>{ if(e.hl) e.score = +(top*(1.04 + rnd(e.label)*0.1)).toFixed(2); });
+}
+function applyPreset(p){
+  S.subject = p.subject === "labs" ? "labs" : "models";
   S.entries = [];
-  const pool = MODELS.length ? MODELS : FALLBACK;
-  // numbers in the same ballpark, so the joke lands without one bar dwarfing the rest
-  const wants = ["openai/gpt-5.2","anthropic/claude-opus-5","x-ai/grok-5","moonshotai/kimi-k2.5",
-                 "google/gemini-3-pro","deepseek/deepseek-r2"];
-  wants.forEach(id=>{
-    const m = pool.find(x=>x.id===id) || FALLBACK.find(x=>x.id===id);
+  const pool = subjectPool();
+  (p.models||[]).forEach(id=>{
+    const m = pool.find(x=>x.id===id) || (S.subject==="models" ? FALLBACK.find(x=>x.id===id) : null);
     if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m);
   });
-  const off = Math.floor(rnd(Date.now()+"p")*Math.max(1,pool.length));
-  for(let i=0; S.entries.length < 5 && i < pool.length; i++){
+  /* a model can vanish from the live list, so top the figure back up */
+  const want = (p.models||[]).length || 6;
+  const off = Math.floor(rnd(p.id+"p")*Math.max(1, pool.length));
+  for(let i=0; S.entries.length < want && i < pool.length; i++){
     const m = pool[(off+i) % pool.length];
     if(m && !S.entries.some(e=>e.modelId===m.id)) addEntry(m);
   }
-  Object.assign(S, {
-    eyebrow:"Announcements", title:"VERBENCH", subtitle:SUBS[0],
-    metric:"Numerical supremacy", yLabel:"Largest integer in identifier",
-    footnote:FOOTS[0], org:ORGS[0], chart:"column",
-    rank:false, err:true, zoom:false, dec:1, suffix:"", center:true, serif:false, colorMode:"ramp"
+  Object.assign(S, PRESET_BASE, p.state);
+  $("fAuto").value = p.auto;
+  autoScore(p.auto);
+  if(p.range) rescale(p.range);
+  starEntry(p.star);
+  if(p.bump) bumpOurs();
+  if(p.curve === "rising") risingSeries();
+  else if(p.curve === "dominant") dominantSeries();
+  activePreset = p.id;
+  pushToInputs(); syncChartUI(); renderPresets(); syncAll();
+}
+function shufflePreset(){
+  const rest = PRESETS.filter(p => p.id !== activePreset);
+  const pool = rest.length ? rest : PRESETS;
+  applyPreset(pool[Math.floor(Math.random()*pool.length)]);
+}
+function renderPresets(){
+  $("presets").innerHTML = PRESETS.map(p=>
+    '<button type="button" class="prow'+(activePreset===p.id ? " on" : "")+'" data-p="'+esc(p.id)+'"'
+    + ' aria-pressed="'+(activePreset===p.id ? "true" : "false")+'">'
+    + '<b>'+esc(p.name)+'</b><em>'+esc(p.blurb)+'</em></button>').join("");
+  $("presets").querySelectorAll(".prow").forEach(el=>{
+    el.onclick = ()=>{
+      const p = PRESETS.find(x => x.id === el.dataset.p);
+      if(p) applyPreset(p);
+    };
   });
-  $("fAuto").value = "numbers";
-  autoScore("numbers");
-  if(S.entries.length){
-    let best = 0;
-    S.entries.forEach((e,i)=>{ if(e.score > S.entries[best].score) best = i; });
-    S.entries.forEach(e=>e.hl=false);
-    S.entries[best].hl = true;
-  }
-  pushToInputs(); syncChartUI(); syncAll();
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1425,10 +1784,16 @@ function pushToInputs(){
   document.querySelectorAll("#chips .chip").forEach(b=>
     b.classList.toggle("on", b.dataset.v.toLowerCase()===S.accent.toLowerCase()));
   syncPressed("#segColor"); syncPressed("#chips");
+  syncSubjectUI();
 }
 function syncPressed(sel){
   document.querySelectorAll(sel+" button").forEach(b=>
     b.setAttribute("aria-pressed", b.classList.contains("on") ? "true" : "false"));
+}
+function syncSubjectUI(){
+  document.querySelectorAll("#segSubject button").forEach(b=>
+    b.classList.toggle("on", b.dataset.v === S.subject));
+  syncPressed("#segSubject");
 }
 function syncChartUI(){
   document.querySelectorAll("#segChart button").forEach(b=> b.classList.toggle("on", b.dataset.v===S.chart));
@@ -1469,6 +1834,14 @@ $("chips").innerHTML = CHIPS.map(c=>
 $("chips").querySelectorAll(".chip").forEach(b=> b.onclick = ()=> setAccent(b.dataset.v));
 document.querySelectorAll("#segChart button").forEach(b=>
   b.onclick = ()=>{ S.chart = b.dataset.v; syncChartUI(); syncAll(); });
+document.querySelectorAll("#segSubject button").forEach(b=>
+  b.onclick = ()=>{
+    if(S.subject === b.dataset.v) return;
+    S.subject = b.dataset.v;
+    syncSubjectUI();
+    renderModels();
+    queueSave();
+  });
 document.querySelectorAll("#segColor button").forEach(b=>
   b.onclick = ()=>{ S.colorMode = b.dataset.v;
     document.querySelectorAll("#segColor button").forEach(x=>x.classList.toggle("on", x===b));
@@ -1487,13 +1860,7 @@ $("btnPaste").onclick = ()=>{
   if(!ingest(j, "pasted")) setStatus("that JSON contained no models with an id", "err");
 };
 $("btnAuto").onclick = ()=>{ autoScore($("fAuto").value); syncAll(); };
-$("btnBump").onclick = ()=>{
-  if(!S.entries.length) return;
-  if(!S.entries.some(e=>e.hl)) S.entries[0].hl = true;
-  const top = Math.max(...S.entries.map(e=>+e.score||0));
-  S.entries.forEach(e=>{ if(e.hl) e.score = +(top*(1.04 + rnd(e.label)*0.1)).toFixed(2); });
-  syncAll();
-};
+$("btnBump").onclick = ()=>{ bumpOurs(); syncAll(); };
 $("btnClear").onclick = ()=>{ S.entries = []; syncAll(); };
 $("btnAdd").onclick   = ()=>{
   addEntry(null);
@@ -1502,7 +1869,7 @@ $("btnAdd").onclick   = ()=>{
 };
 $("btnName").onclick   = randomName;
 $("btnFoot").onclick   = randomFoot;
-$("btnPreset").onclick = loadPreset;
+$("btnPreset").onclick = shufflePreset;
 $("btnPng").onclick    = exportPNG;
 $("btnSvg").onclick    = exportSVG;
 
@@ -1553,7 +1920,7 @@ document.addEventListener("keydown", e=>{ if(e.key === "Escape") closeZoom(); })
 const SAVE_KEY = "benchmaxxer.v1";
 const CHART_TYPES = ["column","bar","scatter","line","radar"];
 const COLOR_MODES = ["ramp","grey","all"];
-const AUTO_MODES = ["plausible","numbers","namelen","alpha","context","price","vowels","random"];
+const AUTO_MODES = ["plausible","numbers","namelen","alpha","count","context","price","perdollar","vowels","random"];
 let saveTimer = 0;
 function queueSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 400); }
 function saveState(){
@@ -1575,6 +1942,7 @@ function saveState(){
 function normalizeState(){
   if(CHART_TYPES.indexOf(S.chart) < 0) S.chart = "column";
   if(COLOR_MODES.indexOf(S.colorMode) < 0) S.colorMode = "ramp";
+  if(S.subject !== "labs") S.subject = "models";
   if(!/^#[0-9a-f]{6}$/i.test(String(S.accent))) S.accent = "#C4623F";
   S.dec = [0,1,2].indexOf(+S.dec) < 0 ? 1 : +S.dec;
   ["eyebrow","title","subtitle","org","date","footnote","metric","xLabel","yLabel",
@@ -1615,8 +1983,10 @@ $("fAuto").addEventListener("change", queueSave);
    boot
    ══════════════════════════════════════════════════════════════════ */
 MODELS = FALLBACK.slice();
+buildLabs();
+renderPresets();
 if(loadState()){ pushToInputs(); syncChartUI(); syncAll(); }
-else loadPreset();
+else applyPreset(PRESETS[0]);
 syncPressed("#segZoom");
 if(isSmall()) document.querySelectorAll(".sec").forEach((el,i)=>{
   if(i > 0) el.classList.add("collapsed");
